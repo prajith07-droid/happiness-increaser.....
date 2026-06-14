@@ -1,0 +1,3255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ALIEN EMOTIONAL CONTROL CENTER v3.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --cyan: #00f5ff;
+  --purple: #b400ff;
+  --green: #00ff88;
+  --pink: #ff00aa;
+  --gold: #ffd700;
+  --red: #ff2244;
+  --blue: #0044ff;
+  --dark: #000814;
+  --dark2: #0a0a1a;
+  --glass: rgba(0,245,255,0.05);
+  --glass2: rgba(180,0,255,0.08);
+  --border: rgba(0,245,255,0.2);
+  --border2: rgba(180,0,255,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  width:100%; height:100%; overflow:hidden;
+  background:#000814;
+  font-family:'Rajdhani', sans-serif;
+  color:#e0f0ff;
+  user-select:none;
+}
+
+/* ===== CANVAS BG ===== */
+#starCanvas {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:0; pointer-events:none;
+}
+
+/* ===== AURORA ===== */
+.aurora {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:1; pointer-events:none; overflow:hidden;
+}
+.aurora-band {
+  position:absolute; width:200%; height:40%;
+  border-radius:50%;
+  filter:blur(80px);
+  opacity:0.12;
+  animation:auroraMove 12s ease-in-out infinite;
+}
+.aurora-band:nth-child(1) { background:linear-gradient(90deg,#00f5ff,#b400ff); top:10%; animation-delay:0s; }
+.aurora-band:nth-child(2) { background:linear-gradient(90deg,#ff00aa,#00ff88); top:40%; animation-delay:4s; }
+.aurora-band:nth-child(3) { background:linear-gradient(90deg,#0044ff,#ffd700); top:65%; animation-delay:8s; }
+
+@keyframes auroraMove {
+  0%,100% { transform:translateX(-30%) scaleY(1); }
+  50% { transform:translateX(10%) scaleY(1.4); }
+}
+
+/* ===== PAGES ===== */
+.page {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:10; overflow-y:auto; overflow-x:hidden;
+  display:none; flex-direction:column; align-items:center;
+  padding:20px;
+  opacity:0;
+  transition:opacity 0.5s;
+}
+.page.active { display:flex; opacity:1; }
+
+/* ===== SCROLLBAR ===== */
+.page::-webkit-scrollbar { width:4px; }
+.page::-webkit-scrollbar-track { background:rgba(0,0,0,0.3); }
+.page::-webkit-scrollbar-thumb { background:var(--cyan); border-radius:2px; }
+
+/* ===== NAV ===== */
+#nav {
+  position:fixed; bottom:0; left:0; width:100%;
+  z-index:1000;
+  display:flex; justify-content:center; align-items:center;
+  padding:8px 4px;
+  background:rgba(0,8,20,0.9);
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  flex-wrap:wrap; gap:4px;
+}
+.nav-btn {
+  font-family:'Orbitron',sans-serif;
+  font-size:9px; font-weight:700;
+  padding:6px 8px;
+  background:rgba(0,245,255,0.05);
+  border:1px solid rgba(0,245,255,0.15);
+  color:rgba(0,245,255,0.6);
+  border-radius:4px;
+  cursor:pointer;
+  transition:all 0.3s;
+  letter-spacing:0.5px;
+  white-space:nowrap;
+}
+.nav-btn:hover,.nav-btn.active-nav {
+  background:rgba(0,245,255,0.15);
+  border-color:var(--cyan);
+  color:var(--cyan);
+  box-shadow:0 0 12px rgba(0,245,255,0.3);
+}
+.nav-btn.locked { color:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.08); cursor:not-allowed; }
+
+/* ===== HAPPINESS BAR ===== */
+#happinessBar {
+  position:fixed; top:0; left:0; width:100%;
+  z-index:1000;
+  background:rgba(0,8,20,0.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  padding:6px 16px;
+  display:flex; align-items:center; gap:12px;
+}
+#happinessLabel {
+  font-family:'Orbitron',sans-serif;
+  font-size:9px; font-weight:700;
+  color:var(--cyan); letter-spacing:1px;
+  white-space:nowrap;
+}
+#happinessTrack {
+  flex:1; height:8px;
+  background:rgba(0,245,255,0.1);
+  border-radius:4px; overflow:hidden;
+  border:1px solid rgba(0,245,255,0.2);
+}
+#happinessFill {
+  height:100%;
+  background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));
+  border-radius:4px;
+  transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  width:6.7%;
+  box-shadow:0 0 10px var(--cyan);
+}
+#happinessValue {
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px; color:var(--gold);
+  white-space:nowrap; min-width:80px;
+  text-align:right;
+}
+#soundToggle, #darkToggleBtn {
+  background:none; border:1px solid var(--border);
+  color:var(--cyan); padding:3px 8px;
+  border-radius:4px; cursor:pointer;
+  font-size:10px; font-family:'Orbitron',sans-serif;
+  transition:all 0.3s;
+}
+#soundToggle:hover,#darkToggleBtn:hover {
+  background:rgba(0,245,255,0.1);
+  box-shadow:0 0 8px rgba(0,245,255,0.3);
+}
+
+/* ===== LOGO CLICK COUNTER ===== */
+#logoClickZone {
+  cursor:pointer;
+  font-family:'Orbitron',sans-serif;
+  font-size:10px; font-weight:900;
+  color:var(--cyan);
+  letter-spacing:2px;
+  text-shadow:0 0 10px var(--cyan);
+  padding:2px 8px;
+  border:1px solid rgba(0,245,255,0.3);
+  border-radius:4px;
+  transition:all 0.3s;
+  white-space:nowrap;
+}
+#logoClickZone:hover { box-shadow:0 0 15px rgba(0,245,255,0.5); }
+
+/* ===== GLASS CARD ===== */
+.glass-card {
+  background:rgba(0,245,255,0.04);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 30px rgba(0,245,255,0.05), inset 0 0 30px rgba(0,245,255,0.02);
+}
+.glass-card-purple {
+  background:rgba(180,0,255,0.05);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  padding:24px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 30px rgba(180,0,255,0.08);
+}
+
+/* ===== GLOW BTN ===== */
+.glow-btn {
+  font-family:'Orbitron',sans-serif;
+  font-size:13px; font-weight:700;
+  letter-spacing:1.5px;
+  padding:14px 28px;
+  border-radius:10px;
+  cursor:pointer;
+  border:none;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s;
+}
+.glow-btn::before {
+  content:''; position:absolute; inset:0;
+  background:rgba(255,255,255,0.1);
+  opacity:0; transition:opacity 0.3s;
+}
+.glow-btn:hover::before { opacity:1; }
+.glow-btn:active { transform:scale(0.97); }
+
+.btn-cyan {
+  background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(0,100,200,0.3));
+  border:1.5px solid var(--cyan);
+  color:var(--cyan);
+  box-shadow:0 0 20px rgba(0,245,255,0.2), inset 0 0 20px rgba(0,245,255,0.05);
+}
+.btn-cyan:hover { box-shadow:0 0 35px rgba(0,245,255,0.5), inset 0 0 20px rgba(0,245,255,0.1); }
+
+.btn-purple {
+  background:linear-gradient(135deg,rgba(180,0,255,0.2),rgba(80,0,200,0.3));
+  border:1.5px solid var(--purple);
+  color:var(--purple);
+  box-shadow:0 0 20px rgba(180,0,255,0.2);
+}
+.btn-purple:hover { box-shadow:0 0 35px rgba(180,0,255,0.5); }
+
+.btn-green {
+  background:linear-gradient(135deg,rgba(0,255,136,0.2),rgba(0,150,80,0.3));
+  border:1.5px solid var(--green);
+  color:var(--green);
+  box-shadow:0 0 20px rgba(0,255,136,0.2);
+}
+.btn-green:hover { box-shadow:0 0 35px rgba(0,255,136,0.5); }
+
+.btn-pink {
+  background:linear-gradient(135deg,rgba(255,0,170,0.2),rgba(200,0,100,0.3));
+  border:1.5px solid var(--pink);
+  color:var(--pink);
+  box-shadow:0 0 20px rgba(255,0,170,0.2);
+}
+.btn-pink:hover { box-shadow:0 0 35px rgba(255,0,170,0.5); }
+
+.btn-gold {
+  background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(200,150,0,0.3));
+  border:1.5px solid var(--gold);
+  color:var(--gold);
+  box-shadow:0 0 20px rgba(255,215,0,0.2);
+}
+.btn-gold:hover { box-shadow:0 0 35px rgba(255,215,0,0.5); }
+
+.btn-red {
+  background:linear-gradient(135deg,rgba(255,34,68,0.3),rgba(180,0,0,0.4));
+  border:2px solid var(--red);
+  color:#fff;
+  box-shadow:0 0 30px rgba(255,34,68,0.4);
+  font-size:18px;
+}
+.btn-red:hover { box-shadow:0 0 60px rgba(255,34,68,0.8); transform:scale(1.03); }
+
+/* ===== PAGE HEADERS ===== */
+.page-title {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(18px,4vw,36px);
+  font-weight:900;
+  letter-spacing:3px;
+  text-align:center;
+  margin-bottom:8px;
+}
+.page-subtitle {
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;
+  color:rgba(0,245,255,0.6);
+  text-align:center;
+  letter-spacing:2px;
+  margin-bottom:24px;
+}
+
+/* ===== SCANLINE ===== */
+.scanline {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:5; pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+}
+
+/* ===== CRT flicker ===== */
+@keyframes crtFlicker { 0%,100%{opacity:1} 92%{opacity:0.98} 94%{opacity:0.95} 96%{opacity:0.99} }
+
+/* ===== TRANSITION OVERLAY ===== */
+#transOverlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:500; pointer-events:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 0.2s;
+  background:rgba(0,0,0,0.95);
+}
+#transOverlay.show { opacity:1; }
+#transText {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(16px,3vw,28px);
+  font-weight:900;
+  letter-spacing:4px;
+  color:var(--cyan);
+  text-shadow:0 0 20px var(--cyan);
+  text-align:center;
+}
+
+/* ===== ACHIEVEMENT POPUP ===== */
+#achievePopup {
+  position:fixed; top:80px; right:16px;
+  z-index:2000;
+  max-width:280px;
+  background:rgba(0,8,20,0.95);
+  border:1.5px solid var(--gold);
+  border-radius:12px;
+  padding:16px 20px;
+  display:none;
+  box-shadow:0 0 30px rgba(255,215,0,0.3);
+  animation:slideInRight 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideInRight {
+  from { transform:translateX(120%); opacity:0; }
+  to { transform:translateX(0); opacity:1; }
+}
+#achievePopup .achieve-label {
+  font-family:'Orbitron',sans-serif;
+  font-size:8px; letter-spacing:2px;
+  color:var(--gold); margin-bottom:4px;
+}
+#achievePopup .achieve-name {
+  font-family:'Orbitron',sans-serif;
+  font-size:14px; font-weight:700;
+  color:#fff;
+}
+#achievePopup .achieve-desc {
+  font-family:'Rajdhani',sans-serif;
+  font-size:13px; color:rgba(255,255,255,0.7);
+  margin-top:4px;
+}
+
+/* ===== MILESTONE ===== */
+#milestonePopup {
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  z-index:3000;
+  background:rgba(0,8,20,0.98);
+  border:2px solid var(--cyan);
+  border-radius:20px;
+  padding:40px 50px;
+  text-align:center;
+  transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 0 60px rgba(0,245,255,0.4);
+}
+#milestonePopup.show { transform:translate(-50%,-50%) scale(1); }
+#milestoneNum {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(32px,6vw,64px);
+  font-weight:900;
+  color:var(--gold);
+  text-shadow:0 0 30px var(--gold);
+}
+#milestoneMsg {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(12px,2vw,18px);
+  color:var(--cyan);
+  margin-top:8px;
+}
+
+/* ===== PARTICLES ===== */
+#particleContainer {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:400; pointer-events:none; overflow:hidden;
+}
+.particle {
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  animation:particleFly 1.2s ease-out forwards;
+}
+@keyframes particleFly {
+  0% { opacity:1; transform:translate(0,0) scale(1); }
+  100% { opacity:0; transform:translate(var(--tx),var(--ty)) scale(0); }
+}
+.confetti-piece {
+  position:absolute;
+  width:8px; height:8px;
+  pointer-events:none;
+  animation:confettiFall 2.5s ease-in forwards;
+}
+@keyframes confettiFall {
+  0% { opacity:1; transform:translateY(-20px) rotate(0deg); }
+  100% { opacity:0; transform:translateY(100vh) rotate(720deg); }
+}
+
+/* ===== NOTIFICATION ===== */
+#notification {
+  position:fixed; top:80px; left:50%;
+  transform:translateX(-50%) translateY(-150%);
+  z-index:2500;
+  background:rgba(0,8,20,0.97);
+  border:1px solid var(--cyan);
+  border-radius:10px;
+  padding:12px 24px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px; color:var(--cyan);
+  text-align:center;
+  max-width:90vw;
+  box-shadow:0 0 20px rgba(0,245,255,0.3);
+  transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap;
+}
+#notification.show { transform:translateX(-50%) translateY(0); }
+
+/* ======================================================= */
+/* ==================== PAGE 1: BOOT ==================== */
+/* ======================================================= */
+#page1 { justify-content:center; padding:60px 20px 20px; }
+#bootScreen {
+  width:100%; max-width:700px;
+  display:flex; flex-direction:column; align-items:center;
+  gap:16px;
+}
+.boot-logo {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(10px,2vw,14px);
+  letter-spacing:8px;
+  color:var(--cyan);
+  text-align:center;
+  animation:logoPulse 2s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100% { text-shadow:0 0 10px var(--cyan), 0 0 20px var(--cyan); }
+  50% { text-shadow:0 0 20px var(--cyan), 0 0 40px var(--cyan), 0 0 60px var(--cyan); }
+}
+
+#bootProgressBar {
+  width:100%; max-width:500px;
+  height:6px; background:rgba(0,245,255,0.1);
+  border-radius:3px; overflow:hidden;
+  border:1px solid rgba(0,245,255,0.2);
+}
+#bootFill {
+  height:100%;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  border-radius:3px;
+  width:0%;
+  transition:width 0.3s ease;
+  box-shadow:0 0 10px var(--cyan);
+}
+#bootStatus {
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px; color:rgba(0,245,255,0.7);
+  letter-spacing:2px; text-align:center;
+}
+
+#scanResults {
+  display:none;
+  width:100%; max-width:500px;
+}
+.scan-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid rgba(0,245,255,0.1);
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px;
+}
+.scan-label { color:rgba(0,245,255,0.6); }
+.scan-value { color:var(--green); font-weight:700; }
+.scan-value.blink { animation:valueBlink 1s infinite; }
+@keyframes valueBlink {
+  0%,100% { opacity:1; }
+  50% { opacity:0.4; }
+}
+
+#welcomeMsg {
+  display:none;
+  text-align:center;
+  max-width:600px;
+  padding:0 16px;
+}
+#welcomeMsg .welcome-title {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(16px,3vw,28px);
+  font-weight:900;
+  color:var(--cyan);
+  text-shadow:0 0 20px var(--cyan);
+  margin-bottom:8px;
+  letter-spacing:2px;
+}
+#welcomeMsg .welcome-sub {
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px; color:rgba(255,255,255,0.7);
+  line-height:1.6; margin-bottom:12px;
+}
+.check-list { list-style:none; text-align:left; }
+.check-list li {
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px; color:var(--green);
+  padding:4px 0;
+  display:flex; align-items:center; gap:8px;
+}
+.check-icon {
+  width:14px; height:14px; flex-shrink:0;
+  display:inline-block;
+}
+.mission-msg {
+  background:rgba(180,0,255,0.1);
+  border:1px solid rgba(180,0,255,0.3);
+  border-radius:12px;
+  padding:16px;
+  margin-top:12px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:15px; color:rgba(255,255,255,0.85);
+  line-height:1.7;
+}
+.mission-msg .from { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--purple); margin-bottom:6px; letter-spacing:1px; }
+.final-checks {
+  text-align:left; width:100%;
+}
+.fc-item {
+  display:flex; align-items:center; gap:10px;
+  padding:6px 0;
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px; color:var(--green);
+}
+
+/* ======================================================= */
+/* =================== PAGE 2: MISSION ================== */
+/* ======================================================= */
+#page2 { padding:60px 20px 80px; }
+.p2-header {
+  width:100%; max-width:900px; margin:0 auto 24px;
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.gauge-card {
+  background:rgba(0,8,20,0.8);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  text-align:center;
+  backdrop-filter:blur(20px);
+}
+.gauge-title {
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px; color:rgba(0,245,255,0.5);
+  letter-spacing:1px; margin-bottom:8px;
+  text-transform:uppercase;
+}
+.gauge-val {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(14px,2.5vw,24px);
+  font-weight:900;
+  color:var(--cyan);
+  text-shadow:0 0 15px var(--cyan);
+}
+.gauge-ring {
+  width:60px; height:60px;
+  margin:0 auto 8px;
+  position:relative;
+}
+.gauge-ring svg { transform:rotate(-90deg); }
+.gauge-ring-track { stroke:rgba(0,245,255,0.1); fill:none; stroke-width:4; }
+.gauge-ring-fill { fill:none; stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
+
+.control-grid {
+  width:100%; max-width:900px; margin:0 auto;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+}
+.control-btn-card {
+  background:rgba(0,8,20,0.8);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  cursor:pointer;
+  transition:all 0.3s;
+  backdrop-filter:blur(20px);
+  text-align:center;
+}
+.control-btn-card:hover {
+  border-color:var(--cyan);
+  box-shadow:0 0 25px rgba(0,245,255,0.15);
+  transform:translateY(-3px);
+}
+.control-icon { width:36px; height:36px; margin:0 auto 10px; }
+.control-name {
+  font-family:'Orbitron',sans-serif;
+  font-size:12px; font-weight:700;
+  color:var(--cyan); margin-bottom:8px;
+  letter-spacing:1px;
+}
+.control-output {
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px; color:rgba(255,255,255,0.6);
+  min-height:40px; line-height:1.5;
+}
+.control-btn-card.running { border-color:var(--green); animation:runPulse 0.8s infinite; }
+@keyframes runPulse {
+  0%,100% { box-shadow:0 0 15px rgba(0,255,136,0.2); }
+  50% { box-shadow:0 0 30px rgba(0,255,136,0.5); }
+}
+
+/* compliment display */
+#complimentDisplay {
+  width:100%; max-width:900px; margin:16px auto 0;
+  display:none;
+}
+.compliment-box {
+  background:rgba(180,0,255,0.08);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  padding:24px;
+  text-align:center;
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(16px,2.5vw,22px);
+  color:#fff;
+  font-weight:600;
+  line-height:1.5;
+  animation:complimentAppear 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes complimentAppear {
+  from { transform:scale(0.8); opacity:0; }
+  to { transform:scale(1); opacity:1; }
+}
+
+/* ======================================================= */
+/* ================== PAGE 3: VAULT ==================== */
+/* ======================================================= */
+#page3 { padding:60px 20px 80px; }
+.vault-header {
+  text-align:center;
+  margin-bottom:24px;
+}
+#vaultDoor {
+  width:100%; max-width:260px;
+  margin:0 auto 24px;
+  position:relative;
+}
+.vault-svg-anim rect { transition:all 0.5s; }
+
+.card-grid {
+  width:100%; max-width:1000px; margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px;
+}
+.compliment-card {
+  background:rgba(0,8,20,0.85);
+  border:1px solid rgba(0,245,255,0.15);
+  border-radius:12px;
+  padding:20px;
+  cursor:pointer;
+  transition:all 0.4s;
+  font-family:'Rajdhani',sans-serif;
+  font-size:15px; color:rgba(255,255,255,0.85);
+  line-height:1.4; font-weight:500;
+  position:relative; overflow:hidden;
+  min-height:100px;
+  display:flex; align-items:center;
+  perspective:1000px;
+  transform-style:preserve-3d;
+}
+.compliment-card:hover {
+  border-color:var(--cyan);
+  box-shadow:0 0 20px rgba(0,245,255,0.15);
+  transform:translateY(-4px) rotateY(5deg);
+}
+.compliment-card.flipped {
+  animation:cardFlip 0.6s ease;
+  background:rgba(180,0,255,0.1);
+  border-color:var(--purple);
+}
+@keyframes cardFlip {
+  0% { transform:rotateY(0deg); }
+  50% { transform:rotateY(90deg); opacity:0; }
+  51% { transform:rotateY(-90deg); opacity:0; }
+  100% { transform:rotateY(0deg); opacity:1; }
+}
+.card-num {
+  position:absolute; top:8px; right:10px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px; color:rgba(0,245,255,0.3);
+}
+
+/* ======================================================= */
+/* ================== PAGE 4: SCANNER =================== */
+/* ======================================================= */
+#page4 { padding:60px 20px 80px; }
+.scanner-room {
+  width:100%; max-width:700px; margin:0 auto;
+}
+#hologramDisplay {
+  background:rgba(0,255,136,0.03);
+  border:1px solid rgba(0,255,136,0.2);
+  border-radius:20px;
+  padding:32px;
+  margin:24px 0;
+  min-height:200px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:16px;
+  position:relative; overflow:hidden;
+}
+#hologramDisplay::before {
+  content:''; position:absolute;
+  top:0; left:-100%; width:200%; height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  animation:hologramScan 3s linear infinite;
+}
+@keyframes hologramScan {
+  from { top:0; }
+  to { top:100%; }
+}
+.hologram-line {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(13px,2vw,16px);
+  color:var(--green);
+  text-shadow:0 0 10px var(--green);
+  text-align:center;
+  opacity:0;
+  animation:hologramReveal 0.5s ease forwards;
+}
+@keyframes hologramReveal {
+  from { opacity:0; transform:translateY(10px); filter:blur(4px); }
+  to { opacity:1; transform:translateY(0); filter:blur(0); }
+}
+.future-timeline {
+  display:flex; flex-direction:column; gap:12px; margin-top:16px;
+  width:100%;
+}
+.timeline-item {
+  display:flex; gap:12px; align-items:flex-start;
+}
+.tl-dot {
+  width:10px; height:10px; flex-shrink:0;
+  background:var(--green); border-radius:50%;
+  margin-top:4px;
+  box-shadow:0 0 8px var(--green);
+  animation:dotPulse 2s infinite;
+}
+@keyframes dotPulse {
+  0%,100% { box-shadow:0 0 4px var(--green); }
+  50% { box-shadow:0 0 14px var(--green); }
+}
+.tl-content {
+  font-family:'Rajdhani',sans-serif;
+  font-size:15px; color:rgba(255,255,255,0.85);
+  line-height:1.4;
+}
+.tl-date {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px; color:var(--green);
+  opacity:0.6; margin-bottom:2px;
+}
+
+/* ======================================================= */
+/* ================ PAGE 5: EMERGENCY =================== */
+/* ======================================================= */
+#page5 { padding:60px 20px 80px; }
+.emergency-header {
+  background:rgba(255,34,68,0.05);
+  border:1px solid rgba(255,34,68,0.2);
+  border-radius:12px;
+  padding:16px;
+  text-align:center;
+  margin-bottom:24px;
+  animation:emergencyPulse 2s infinite;
+}
+@keyframes emergencyPulse {
+  0%,100% { border-color:rgba(255,34,68,0.2); }
+  50% { border-color:rgba(255,34,68,0.6); box-shadow:0 0 20px rgba(255,34,68,0.1); }
+}
+.emergency-title {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(14px,2.5vw,20px);
+  font-weight:900; color:var(--red);
+  letter-spacing:2px;
+}
+.emergency-sub {
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px; color:rgba(255,34,68,0.6);
+  margin-top:4px;
+}
+.emergency-grid {
+  width:100%; max-width:800px; margin:0 auto;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.emergency-btn-card {
+  background:rgba(0,8,20,0.85);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  padding:16px;
+  cursor:pointer;
+  transition:all 0.3s;
+  text-align:center;
+}
+.emergency-btn-card:hover {
+  transform:translateY(-3px);
+  box-shadow:0 8px 30px rgba(0,0,0,0.4);
+}
+.eb-icon { font-size:28px; margin-bottom:8px; display:block; }
+.eb-name {
+  font-family:'Orbitron',sans-serif;
+  font-size:11px; font-weight:700;
+  letter-spacing:1px; margin-bottom:10px;
+}
+.eb-output {
+  font-family:'Rajdhani',sans-serif;
+  font-size:14px; color:rgba(255,255,255,0.7);
+  min-height:50px; line-height:1.5;
+}
+
+/* svg icon styles */
+.svg-icon { display:inline-block; }
+
+/* ======================================================= */
+/* =================== PAGE 6: ARCADE =================== */
+/* ======================================================= */
+#page6 { padding:60px 20px 80px; }
+.arcade-score-board {
+  display:flex; justify-content:center; gap:24px;
+  margin-bottom:20px; flex-wrap:wrap;
+}
+.score-item {
+  text-align:center;
+  background:rgba(0,8,20,0.8);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 20px;
+}
+.score-label {
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px; color:rgba(0,245,255,0.5);
+  letter-spacing:1px; margin-bottom:4px;
+}
+.score-num {
+  font-family:'Orbitron',sans-serif;
+  font-size:22px; font-weight:900;
+  color:var(--gold);
+  text-shadow:0 0 10px var(--gold);
+}
+.game-tabs {
+  display:flex; gap:8px; margin-bottom:16px;
+  justify-content:center; flex-wrap:wrap;
+}
+.game-tab {
+  font-family:'Orbitron',sans-serif;
+  font-size:10px; font-weight:700;
+  padding:8px 14px;
+  background:rgba(0,8,20,0.8);
+  border:1px solid rgba(0,245,255,0.2);
+  color:rgba(0,245,255,0.5);
+  border-radius:8px; cursor:pointer;
+  transition:all 0.3s; letter-spacing:0.5px;
+}
+.game-tab.active, .game-tab:hover {
+  background:rgba(0,245,255,0.1);
+  border-color:var(--cyan); color:var(--cyan);
+  box-shadow:0 0 12px rgba(0,245,255,0.2);
+}
+.game-container {
+  width:100%; max-width:700px; margin:0 auto;
+  background:rgba(0,8,20,0.9);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  position:relative;
+}
+#gameCanvas {
+  display:block; width:100%;
+  cursor:crosshair;
+}
+.game-overlay {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:16px;
+  background:rgba(0,8,20,0.85);
+  display:none;
+}
+.game-overlay.show { display:flex; }
+.go-title {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(16px,3vw,28px);
+  font-weight:900; color:var(--cyan);
+  text-shadow:0 0 20px var(--cyan);
+}
+.go-score {
+  font-family:'Share Tech Mono',monospace;
+  font-size:16px; color:var(--gold);
+}
+
+/* ======================================================= */
+/* ================= PAGE 7: SECRET ==================== */
+/* ======================================================= */
+#page7 {
+  padding:60px 20px 80px;
+  background:rgba(0,40,0,0.1);
+  display:none; justify-content:center; align-items:center;
+}
+.secret-container {
+  width:100%; max-width:700px; margin:0 auto;
+  text-align:center;
+}
+.matrix-text {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(12px,2vw,16px);
+  color:var(--green);
+  text-shadow:0 0 8px var(--green);
+  white-space:pre-wrap;
+  text-align:left;
+  overflow:hidden;
+}
+.ufo-parade {
+  display:flex; justify-content:center; gap:30px;
+  flex-wrap:wrap; margin:24px 0;
+}
+.ufo-fly {
+  animation:ufoFly 3s ease-in-out infinite;
+}
+.ufo-fly:nth-child(2) { animation-delay:0.5s; }
+.ufo-fly:nth-child(3) { animation-delay:1s; }
+@keyframes ufoFly {
+  0%,100% { transform:translateY(0) scale(1); }
+  50% { transform:translateY(-15px) scale(1.05); }
+}
+.alien-badge {
+  display:inline-block;
+  background:rgba(0,255,136,0.1);
+  border:2px solid var(--green);
+  border-radius:16px;
+  padding:16px 32px;
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(14px,2.5vw,20px);
+  font-weight:900;
+  color:var(--green);
+  text-shadow:0 0 20px var(--green);
+  box-shadow:0 0 30px rgba(0,255,136,0.2);
+  margin:16px 0;
+}
+
+/* ======================================================= */
+/* ============== PAGE 8: ACHIEVEMENTS ================== */
+/* ======================================================= */
+#page8 { padding:60px 20px 80px; }
+.achieve-grid {
+  width:100%; max-width:900px; margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;
+}
+.achieve-card {
+  background:rgba(0,8,20,0.85);
+  border-radius:14px;
+  padding:20px;
+  text-align:center;
+  transition:all 0.3s;
+  position:relative; overflow:hidden;
+}
+.achieve-card.unlocked {
+  border:1px solid var(--gold);
+  box-shadow:0 0 15px rgba(255,215,0,0.1);
+}
+.achieve-card.unlocked:hover {
+  box-shadow:0 0 30px rgba(255,215,0,0.25);
+  transform:translateY(-3px);
+}
+.achieve-card.locked {
+  border:1px solid rgba(255,255,255,0.08);
+  opacity:0.5;
+  filter:grayscale(1);
+}
+.achieve-card-icon { width:40px; height:40px; margin:0 auto 10px; }
+.achieve-card-name {
+  font-family:'Orbitron',sans-serif;
+  font-size:11px; font-weight:700;
+  color:var(--gold); margin-bottom:6px;
+  letter-spacing:0.5px;
+}
+.achieve-card.locked .achieve-card-name { color:rgba(255,255,255,0.3); }
+.achieve-card-desc {
+  font-family:'Rajdhani',sans-serif;
+  font-size:13px; color:rgba(255,255,255,0.6);
+}
+.achieve-card.locked .achieve-card-desc { color:rgba(255,255,255,0.2); }
+.locked-badge {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.3);
+  font-size:24px;
+}
+
+/* ======================================================= */
+/* ================= PAGE 9: BIG BUTTON ================= */
+/* ======================================================= */
+#page9 {
+  padding:60px 20px 80px;
+  justify-content:center; align-items:center;
+  flex-direction:column; gap:24px;
+}
+.big-btn-room {
+  text-align:center; max-width:600px; width:100%;
+}
+#theButton {
+  width:clamp(160px,40vw,260px);
+  height:clamp(160px,40vw,260px);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+  background:radial-gradient(circle at 35% 35%, #ff4466, #aa0022);
+  box-shadow:0 0 40px rgba(255,34,68,0.5), 0 0 80px rgba(255,34,68,0.2), inset 0 -4px 20px rgba(0,0,0,0.4);
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(14px,3vw,20px);
+  font-weight:900;
+  color:#fff;
+  letter-spacing:2px;
+  transition:all 0.3s;
+  position:relative;
+  animation:bigButtonPulse 2s ease-in-out infinite;
+}
+@keyframes bigButtonPulse {
+  0%,100% { box-shadow:0 0 40px rgba(255,34,68,0.5), 0 0 80px rgba(255,34,68,0.2); }
+  50% { box-shadow:0 0 60px rgba(255,34,68,0.8), 0 0 100px rgba(255,34,68,0.4); }
+}
+#theButton:hover {
+  transform:scale(1.05);
+  box-shadow:0 0 80px rgba(255,34,68,0.8), 0 0 120px rgba(255,34,68,0.4);
+}
+#theButton:active { transform:scale(0.96); }
+.big-btn-warning {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(10px,2vw,14px);
+  color:rgba(255,34,68,0.7);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  animation:warningBlink 1.5s infinite;
+  margin-bottom:20px;
+}
+@keyframes warningBlink {
+  0%,100% { opacity:1; }
+  50% { opacity:0.3; }
+}
+#buttonResult {
+  display:none;
+  margin-top:24px;
+  text-align:center;
+}
+.result-big {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(20px,5vw,48px);
+  font-weight:900;
+  color:var(--gold);
+  text-shadow:0 0 30px var(--gold);
+  animation:resultAppear 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  margin-bottom:12px;
+}
+@keyframes resultAppear {
+  from { transform:scale(0); opacity:0; }
+  to { transform:scale(1); opacity:1; }
+}
+.result-sub {
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(15px,2.5vw,20px);
+  color:rgba(255,255,255,0.8);
+  line-height:1.5;
+}
+
+/* ======================================================= */
+/* =================== PAGE 10: STILL =================== */
+/* ======================================================= */
+#page10 {
+  padding:60px 20px 80px;
+  justify-content:center; align-items:center;
+}
+.still-container {
+  text-align:center; max-width:600px;
+  animation:stillFadeIn 3s ease;
+}
+@keyframes stillFadeIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.still-title {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(32px,8vw,80px);
+  font-weight:900;
+  color:rgba(0,245,255,0.5);
+  letter-spacing:8px;
+  text-shadow:0 0 40px rgba(0,245,255,0.2);
+  margin-bottom:16px;
+}
+.still-line {
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(16px,2.5vw,22px);
+  color:rgba(255,255,255,0.6);
+  line-height:1.8;
+  margin-bottom:8px;
+}
+.still-line.highlight {
+  color:rgba(0,245,255,0.8);
+  font-weight:600;
+}
+.still-line.big {
+  font-size:clamp(18px,3vw,26px);
+  color:rgba(255,255,255,0.8);
+  font-weight:700;
+}
+#page10countdown {
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px; color:rgba(0,245,255,0.4);
+  margin-top:16px;
+}
+
+/* ===== SHAKE ===== */
+.shake {
+  animation:shakeAnim 0.5s cubic-bezier(0.36,0.07,0.19,0.97);
+}
+@keyframes shakeAnim {
+  0%,100%{transform:translate(0)}
+  10%,90%{transform:translate(-4px,0)}
+  20%,80%{transform:translate(4px,0)}
+  30%,70%{transform:translate(-6px,2px)}
+  40%,60%{transform:translate(6px,-2px)}
+  50%{transform:translate(-4px,0)}
+}
+
+/* ===== SIREN ===== */
+#siren {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:450; pointer-events:none;
+  display:none;
+  animation:sirenFlash 0.15s infinite;
+}
+@keyframes sirenFlash {
+  0%,100%{background:rgba(255,34,68,0.0)}
+  50%{background:rgba(255,34,68,0.12)}
+}
+#siren.show { display:block; }
+
+/* ===== UFO SURPRISE ===== */
+.surprise-ufo {
+  position:fixed;
+  z-index:200;
+  pointer-events:none;
+  animation:ufoSurpriseMove 6s linear forwards;
+}
+@keyframes ufoSurpriseMove {
+  from { left:-200px; top:20%; }
+  to { left:110%; top:15%; }
+}
+
+/* ===== DAILY MSG ===== */
+#dailyMsg {
+  position:fixed; bottom:80px; left:50%;
+  transform:translateX(-50%);
+  z-index:300;
+  background:rgba(0,8,20,0.95);
+  border:1px solid var(--gold);
+  border-radius:12px;
+  padding:14px 20px;
+  text-align:center;
+  max-width:90vw;
+  display:none;
+  animation:dailyMsgAnim 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes dailyMsgAnim {
+  from{transform:translateX(-50%) translateY(20px);opacity:0}
+  to{transform:translateX(-50%) translateY(0);opacity:1}
+}
+.daily-label {
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px; color:var(--gold); letter-spacing:2px; margin-bottom:4px;
+}
+.daily-text {
+  font-family:'Rajdhani',sans-serif;
+  font-size:15px; color:rgba(255,255,255,0.9);
+}
+#dailyClose {
+  position:absolute; top:6px; right:10px;
+  background:none; border:none;
+  color:rgba(255,255,255,0.4);
+  cursor:pointer; font-size:16px;
+}
+
+/* ===== Hidden star ===== */
+.hidden-star {
+  position:fixed; z-index:200;
+  cursor:pointer;
+  opacity:0.15;
+  transition:opacity 0.3s;
+}
+.hidden-star:hover { opacity:0.8; }
+
+/* ===== LOADER ===== */
+#pageLoader {
+  position:fixed; inset:0;
+  background:var(--dark);
+  z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+}
+.loader-text {
+  font-family:'Orbitron',sans-serif;
+  font-size:14px; color:var(--cyan);
+  letter-spacing:4px;
+  text-shadow:0 0 10px var(--cyan);
+  animation:logoPulse 1.5s infinite;
+}
+.loader-bar {
+  width:200px; height:4px;
+  background:rgba(0,245,255,0.1);
+  border-radius:2px;
+}
+.loader-fill {
+  height:100%;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  border-radius:2px;
+  animation:loaderFill 1.5s ease-out forwards;
+}
+@keyframes loaderFill {
+  from{width:0}
+  to{width:100%}
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px) {
+  .p2-header { grid-template-columns:repeat(3,1fr); gap:6px; }
+  .gauge-card { padding:10px 6px; }
+  .gauge-ring { width:44px; height:44px; }
+  .gauge-val { font-size:12px; }
+  .card-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+  #nav { padding:6px 2px; gap:2px; }
+  .nav-btn { font-size:7px; padding:5px 5px; letter-spacing:0; }
+  #happinessBar { padding:4px 8px; gap:6px; }
+  #happinessValue { font-size:11px; min-width:60px; }
+}
+
+/* ===== FIREWORK ===== */
+.firework {
+  position:fixed;
+  pointer-events:none;
+  z-index:600;
+}
+.fw-trail {
+  position:absolute;
+  width:4px; height:4px; border-radius:50%;
+  animation:fwTrail 0.8s ease-out forwards;
+}
+@keyframes fwTrail {
+  0%{opacity:1;transform:translate(0,0)scale(1)}
+  100%{opacity:0;transform:translate(var(--fx),var(--fy))scale(0)}
+}
+</style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="pageLoader">
+  <div class="loader-text">INITIALIZING SYSTEM</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<!-- Star Canvas -->
+<canvas id="starCanvas"></canvas>
+
+<!-- Aurora -->
+<div class="aurora">
+  <div class="aurora-band"></div>
+  <div class="aurora-band"></div>
+  <div class="aurora-band"></div>
+</div>
+
+<!-- Scanline overlay -->
+<div class="scanline"></div>
+
+<!-- Siren Flash -->
+<div id="siren"></div>
+
+<!-- Happiness Bar -->
+<div id="happinessBar">
+  <div id="logoClickZone" onclick="logoClick()" title="Click me...">AECC</div>
+  <span id="happinessLabel">HAPPINESS</span>
+  <div id="happinessTrack"><div id="happinessFill"></div></div>
+  <span id="happinessValue">67</span>
+  <button id="soundToggle" onclick="toggleSound()">SFX ON</button>
+  <button id="darkToggleBtn" onclick="toggleDark()" style="display:none">MODE</button>
+</div>
+
+<!-- Navigation -->
+<div id="nav">
+  <button class="nav-btn active-nav" onclick="goTo(1)">P1</button>
+  <button class="nav-btn" onclick="goTo(2)">MISSION</button>
+  <button class="nav-btn" onclick="goTo(3)">VAULT</button>
+  <button class="nav-btn" onclick="goTo(4)">SCANNER</button>
+  <button class="nav-btn" onclick="goTo(5)">EMERGENCY</button>
+  <button class="nav-btn" onclick="goTo(6)">ARCADE</button>
+  <button class="nav-btn locked" id="nav7" onclick="goTo(7)" title="Click the logo 10 times">SECRET</button>
+  <button class="nav-btn" onclick="goTo(8)">ACHIEVE</button>
+  <button class="nav-btn" onclick="goTo(9)">BUTTON</button>
+  <button class="nav-btn locked" id="nav10" onclick="goTo(10)" title="Come back in 5 minutes">STILL</button>
+</div>
+
+<!-- Transition Overlay -->
+<div id="transOverlay"><div id="transText"></div></div>
+
+<!-- Achievement Popup -->
+<div id="achievePopup">
+  <div class="achieve-label">ACHIEVEMENT UNLOCKED</div>
+  <div class="achieve-name" id="achieveName"></div>
+  <div class="achieve-desc" id="achieveDesc"></div>
+</div>
+
+<!-- Milestone Popup -->
+<div id="milestonePopup">
+  <div id="milestoneNum">0</div>
+  <div id="milestoneMsg">milestone reached</div>
+  <button class="glow-btn btn-cyan" style="margin-top:20px;font-size:12px" onclick="hideMilestone()">ACKNOWLEDGED</button>
+</div>
+
+<!-- Notification -->
+<div id="notification"></div>
+
+<!-- Particle Container -->
+<div id="particleContainer"></div>
+
+<!-- Daily Message -->
+<div id="dailyMsg">
+  <div class="daily-label">DAILY COSMIC MESSAGE</div>
+  <div class="daily-text" id="dailyText"></div>
+  <button id="dailyClose" onclick="document.getElementById('dailyMsg').style.display='none'">x</button>
+</div>
+
+<!-- ============================= PAGE 1 ============================= -->
+<div class="page active" id="page1">
+  <div id="bootScreen">
+    <div class="boot-logo">ALIEN EMOTIONAL CONTROL CENTER</div>
+    <div id="bootProgressBar"><div id="bootFill"></div></div>
+    <div id="bootStatus">INITIALIZING...</div>
+
+    <div id="scanResults" class="glass-card" style="margin-top:8px">
+      <div style="font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--cyan);text-align:center;margin-bottom:12px">
+        ALIEN DETECTED &mdash; SCANNING...
+      </div>
+      <div class="scan-row"><span class="scan-label">KINDNESS LEVEL</span><span class="scan-value">EXTREMELY HIGH</span></div>
+      <div class="scan-row"><span class="scan-label">STRENGTH LEVEL</span><span class="scan-value">HIGHER THAN EXPECTED</span></div>
+      <div class="scan-row"><span class="scan-label">SMILE POTENTIAL</span><span class="scan-value blink">UNLIMITED</span></div>
+      <div class="scan-row"><span class="scan-label">ALIEN ENERGY</span><span class="scan-value blink">UNLIMITED</span></div>
+      <div class="scan-row" style="border:none"><span class="scan-label">MISSION STATUS</span><span class="scan-value" style="color:var(--cyan)">ACTIVE</span></div>
+    </div>
+
+    <div id="welcomeMsg">
+      <div class="welcome-title">ALIEN EMOTIONAL CONTROL CENTER</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(0,245,255,0.5);letter-spacing:2px;margin-bottom:16px">
+        OFFICIAL EARTH RECOVERY SYSTEM v3.0
+      </div>
+      <div class="glass-card" style="margin-bottom:16px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red);letter-spacing:1px;margin-bottom:8px">
+          WARNING
+        </div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:15px;color:rgba(255,255,255,0.8)">
+          This system may accidentally increase happiness.
+        </div>
+      </div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:18px;color:#fff;line-height:1.7;margin-bottom:16px">
+        Welcome back, <span style="color:var(--cyan);font-weight:700">Alien.</span><br>
+        We've been expecting you.<br>
+        The universe requested a status check.<br>
+        <span style="color:rgba(255,255,255,0.6);font-size:15px">Several stars have reported unusual levels of awesomeness. Investigation ongoing.</span>
+      </div>
+      <div class="glass-card" style="margin-bottom:16px;text-align:left">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:1px;margin-bottom:10px">FINAL SCAN RESULTS</div>
+        <div class="fc-item">
+          <svg class="svg-icon" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#00ff88" stroke-width="1.5"/><path d="M4 7l2 2 4-4" stroke="#00ff88" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Heart Detected
+        </div>
+        <div class="fc-item">
+          <svg class="svg-icon" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#00ff88" stroke-width="1.5"/><path d="M4 7l2 2 4-4" stroke="#00ff88" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Hope Detected
+        </div>
+        <div class="fc-item">
+          <svg class="svg-icon" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#00ff88" stroke-width="1.5"/><path d="M4 7l2 2 4-4" stroke="#00ff88" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Unlimited Potential Detected
+        </div>
+      </div>
+      <div class="mission-msg">
+        <div class="from">MESSAGE FROM MISSION CONTROL</div>
+        Some days are harder than others.<br>
+        But the universe would like to remind you that your story is still being written.<br>
+        <span style="color:var(--cyan)">And the best chapters? They haven't happened yet.</span>
+      </div>
+      <div style="margin-top:24px">
+        <button class="glow-btn btn-cyan" style="font-size:clamp(13px,2vw,18px);padding:16px 36px" onclick="enterControlCenter()">
+          ENTER CONTROL CENTER
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 2 ============================= -->
+<div class="page" id="page2">
+  <div style="width:100%;max-width:900px;margin:0 auto">
+    <div class="page-title" style="color:var(--cyan);text-shadow:0 0 20px var(--cyan)">MISSION CONTROL</div>
+    <div class="page-subtitle">ALIEN EMOTIONAL OPERATIONS HEADQUARTERS</div>
+
+    <div class="p2-header">
+      <div class="gauge-card">
+        <div class="gauge-title">HAPPINESS</div>
+        <div class="gauge-ring">
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <circle class="gauge-ring-track" cx="30" cy="30" r="24"/>
+            <circle class="gauge-ring-fill" id="g1fill" cx="30" cy="30" r="24"
+              stroke="var(--cyan)"
+              stroke-dasharray="150.8"
+              stroke-dashoffset="50"/>
+          </svg>
+        </div>
+        <div class="gauge-val" id="g1val">67</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-title">ALIEN ENERGY</div>
+        <div class="gauge-ring">
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <circle class="gauge-ring-track" cx="30" cy="30" r="24"/>
+            <circle class="gauge-ring-fill" id="g2fill" cx="30" cy="30" r="24"
+              stroke="var(--purple)"
+              stroke-dasharray="150.8"
+              stroke-dashoffset="20"/>
+          </svg>
+        </div>
+        <div class="gauge-val" style="color:var(--purple)" id="g2val">MAX</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-title">EARTH TOLERANCE</div>
+        <div class="gauge-ring">
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <circle class="gauge-ring-track" cx="30" cy="30" r="24"/>
+            <circle class="gauge-ring-fill" id="g3fill" cx="30" cy="30" r="24"
+              stroke="var(--green)"
+              stroke-dasharray="150.8"
+              stroke-dashoffset="80"/>
+          </svg>
+        </div>
+        <div class="gauge-val" style="color:var(--green)" id="g3val">42%</div>
+      </div>
+    </div>
+
+    <div class="control-grid">
+      <!-- Sadness Remover -->
+      <div class="control-btn-card" onclick="runControl(this,'sadness')">
+        <svg class="control-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="15" stroke="var(--cyan)" stroke-width="1.5"/>
+          <path d="M12 22c1.5-2 4-3 6-3s4.5 1 6 3" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="13" cy="14" r="2" fill="var(--cyan)"/>
+          <circle cx="23" cy="14" r="2" fill="var(--cyan)"/>
+          <path d="M6 6l24 24" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="control-name">SADNESS REMOVER</div>
+        <div class="control-output" id="out-sadness">Click to activate</div>
+      </div>
+      <!-- Happiness Booster -->
+      <div class="control-btn-card" onclick="runControl(this,'happiness')">
+        <svg class="control-icon" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="15" stroke="var(--gold)" stroke-width="1.5"/>
+          <path d="M12 20c1.5 3 4 4 6 4s4.5-1 6-4" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="13" cy="14" r="2" fill="var(--gold)"/>
+          <circle cx="23" cy="14" r="2" fill="var(--gold)"/>
+          <path d="M18 2v4M18 30v4M2 18h4M30 18h4" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="control-name" style="color:var(--gold)">HAPPINESS BOOSTER</div>
+        <div class="control-output" id="out-happiness">Click to activate</div>
+      </div>
+      <!-- Fear Destroyer -->
+      <div class="control-btn-card" onclick="runControl(this,'fear')">
+        <svg class="control-icon" viewBox="0 0 36 36" fill="none">
+          <path d="M18 3L32 30H4L18 3Z" stroke="var(--red)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M18 13v8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="18" cy="25" r="1.5" fill="var(--red)"/>
+          <path d="M4 30l28-27" stroke="var(--green)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="control-name" style="color:var(--red)">FEAR DESTROYER</div>
+        <div class="control-output" id="out-fear">Click to activate</div>
+      </div>
+      <!-- Heart Repair -->
+      <div class="control-btn-card" onclick="runControl(this,'heart')">
+        <svg class="control-icon" viewBox="0 0 36 36" fill="none">
+          <path d="M18 30C18 30 5 22 5 14C5 10 8 7 12 7C14.5 7 17 8.5 18 10C19 8.5 21.5 7 24 7C28 7 31 10 31 14C31 22 18 30 18 30Z" stroke="var(--pink)" stroke-width="1.5" fill="rgba(255,0,170,0.1)"/>
+          <path d="M12 18h12M18 12v12" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="control-name" style="color:var(--pink)">HEART REPAIR MACHINE</div>
+        <div class="control-output" id="out-heart">Click to activate</div>
+      </div>
+      <!-- Future Scanner -->
+      <div class="control-btn-card" onclick="runControl(this,'future')">
+        <svg class="control-icon" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="14" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <circle cx="18" cy="18" r="8" stroke="var(--green)" stroke-width="1.5"/>
+          <circle cx="18" cy="18" r="3" fill="var(--green)"/>
+          <path d="M18 4V8M18 28v4M4 18H8M28 18h4" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="control-name" style="color:var(--green)">FUTURE SCANNER</div>
+        <div class="control-output" id="out-future">Click to activate</div>
+      </div>
+      <!-- Compliment -->
+      <div class="control-btn-card" onclick="summonCompliment()">
+        <svg class="control-icon" viewBox="0 0 36 36" fill="none">
+          <rect x="4" y="8" width="28" height="20" rx="4" stroke="var(--purple)" stroke-width="1.5"/>
+          <path d="M9 14h18M9 19h12" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 26l3 4-3-1-3 1z" fill="var(--purple)"/>
+        </svg>
+        <div class="control-name" style="color:var(--purple)">SUMMON A COMPLIMENT</div>
+        <div class="control-output" id="out-compliment">Click to generate</div>
+      </div>
+    </div>
+
+    <div id="complimentDisplay">
+      <div class="compliment-box" id="complimentBox"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 3 ============================= -->
+<div class="page" id="page3">
+  <div style="width:100%;max-width:1000px;margin:0 auto">
+    <div class="page-title" style="color:var(--gold);text-shadow:0 0 20px var(--gold)">THE COMPLIMENT VAULT</div>
+    <div class="page-subtitle">ACCESSING PROTECTED FILES &mdash; FILE 001: REASONS ALIEN IS AWESOME</div>
+
+    <!-- Vault door SVG -->
+    <div id="vaultDoor" style="text-align:center;margin:0 auto 20px;width:100%;max-width:200px">
+      <svg viewBox="0 0 200 140" width="100%" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="180" height="120" rx="6" fill="rgba(0,8,20,0.9)" stroke="rgba(255,215,0,0.4)" stroke-width="2"/>
+        <rect x="20" y="20" width="160" height="100" rx="4" fill="none" stroke="rgba(255,215,0,0.2)" stroke-width="1"/>
+        <circle cx="100" cy="70" r="28" fill="none" stroke="rgba(255,215,0,0.3)" stroke-width="2"/>
+        <circle cx="100" cy="70" r="18" fill="none" stroke="rgba(255,215,0,0.2)" stroke-width="1.5"/>
+        <g id="vaultSpokes">
+          <line x1="100" y1="42" x2="100" y2="98" stroke="rgba(255,215,0,0.3)" stroke-width="1.5"/>
+          <line x1="72" y1="70" x2="128" y2="70" stroke="rgba(255,215,0,0.3)" stroke-width="1.5"/>
+          <line x1="80" y1="50" x2="120" y2="90" stroke="rgba(255,215,0,0.2)" stroke-width="1"/>
+          <line x1="120" y1="50" x2="80" y2="90" stroke="rgba(255,215,0,0.2)" stroke-width="1"/>
+        </g>
+        <circle cx="100" cy="70" r="8" fill="rgba(255,215,0,0.3)" stroke="rgba(255,215,0,0.6)" stroke-width="1.5"/>
+        <rect x="155" y="55" width="12" height="30" rx="3" fill="none" stroke="rgba(255,215,0,0.3)" stroke-width="1.5"/>
+        <text x="100" y="128" font-family="Orbitron,sans-serif" font-size="7" fill="rgba(255,215,0,0.4)" text-anchor="middle" letter-spacing="2">PROTECTED FILES</text>
+      </svg>
+    </div>
+
+    <div style="text-align:center;margin-bottom:16px">
+      <button class="glow-btn btn-gold" style="font-size:11px;padding:10px 20px" onclick="flipRandomCard()">
+        REVEAL RANDOM ENTRY
+      </button>
+    </div>
+
+    <div class="card-grid" id="complimentGrid"></div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 4 ============================= -->
+<div class="page" id="page4">
+  <div class="scanner-room">
+    <div class="page-title" style="color:var(--green);text-shadow:0 0 20px var(--green)">THE FUTURE SCANNER</div>
+    <div class="page-subtitle">HOLOGRAPHIC TIMELINE PREDICTION SYSTEM v7.4</div>
+
+    <div style="text-align:center;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+      <button class="glow-btn btn-green" style="font-size:11px;padding:10px 20px" onclick="scanFuture()">SCAN FUTURE</button>
+      <button class="glow-btn btn-cyan" style="font-size:11px;padding:10px 20px" onclick="clearFuture()">CLEAR SCAN</button>
+    </div>
+
+    <div id="hologramDisplay">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(0,255,136,0.5);letter-spacing:2px">
+        AWAITING SCAN COMMAND...
+      </div>
+      <svg width="80" height="80" viewBox="0 0 80 80" id="scannerRing">
+        <circle cx="40" cy="40" r="35" fill="none" stroke="rgba(0,255,136,0.15)" stroke-width="2" stroke-dasharray="8 4"/>
+        <circle cx="40" cy="40" r="22" fill="none" stroke="rgba(0,255,136,0.1)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <circle cx="40" cy="40" r="8" fill="rgba(0,255,136,0.1)" stroke="rgba(0,255,136,0.3)" stroke-width="1.5"/>
+        <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="6s" repeatCount="indefinite"/>
+      </svg>
+    </div>
+
+    <div class="future-timeline" id="futureTimeline"></div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 5 ============================= -->
+<div class="page" id="page5">
+  <div style="width:100%;max-width:800px;margin:0 auto">
+    <div class="emergency-header">
+      <div class="emergency-title">EMERGENCY EMOTIONAL SUPPORT SYSTEM</div>
+      <div class="emergency-sub">ACTIVE &mdash; ALL SYSTEMS READY &mdash; STANDING BY</div>
+    </div>
+
+    <div class="emergency-grid">
+      <div class="emergency-btn-card" onclick="emergencyAction('funny')" style="border-color:rgba(255,215,0,0.3)">
+        <span class="eb-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="14" stroke="#ffd700" stroke-width="1.5"/><path d="M11 20c1.5 3 4 4 7 4s5.5-1 7-4" stroke="#ffd700" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="14" r="2" fill="#ffd700"/><circle cx="23" cy="14" r="2" fill="#ffd700"/></svg>
+        </span>
+        <div class="eb-name" style="color:var(--gold)">TELL ME SOMETHING FUNNY</div>
+        <div class="eb-output" id="out-funny"></div>
+      </div>
+      <div class="emergency-btn-card" onclick="emergencyAction('cute')" style="border-color:rgba(255,0,170,0.3)">
+        <span class="eb-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 30C18 30 5 22 5 14C5 10 8 7 12 7C14.5 7 17 8.5 18 10C19 8.5 21.5 7 24 7C28 7 31 10 31 14C31 22 18 30 18 30Z" stroke="#ff00aa" stroke-width="1.5" fill="rgba(255,0,170,0.08)"/></svg>
+        </span>
+        <div class="eb-name" style="color:var(--pink)">TELL ME SOMETHING CUTE</div>
+        <div class="eb-output" id="out-cute"></div>
+      </div>
+      <div class="emergency-btn-card" onclick="emergencyAction('mission')" style="border-color:rgba(0,245,255,0.3)">
+        <span class="eb-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 4l4 10h10l-8 6 3 10-9-6-9 6 3-10-8-6h10z" stroke="#00f5ff" stroke-width="1.5" fill="rgba(0,245,255,0.06)"/></svg>
+        </span>
+        <div class="eb-name" style="color:var(--cyan)">GIVE ME A TINY MISSION</div>
+        <div class="eb-output" id="out-mission"></div>
+      </div>
+      <div class="emergency-btn-card" onclick="emergencyAction('fact')" style="border-color:rgba(0,255,136,0.3)">
+        <span class="eb-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="14" stroke="#00ff88" stroke-width="1.5"/><path d="M18 13v9M18 25v2" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <div class="eb-name" style="color:var(--green)">GIVE ME A FUN FACT</div>
+        <div class="eb-output" id="out-fact"></div>
+      </div>
+      <div class="emergency-btn-card" onclick="emergencyAction('hope')" style="border-color:rgba(180,0,255,0.3)">
+        <span class="eb-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 8L22 16L31 17L24 24L26 33L18 28L10 33L12 24L5 17L14 16Z" stroke="#b400ff" stroke-width="1.5" fill="rgba(180,0,255,0.08)"/></svg>
+        </span>
+        <div class="eb-name" style="color:var(--purple)">GIVE ME HOPE</div>
+        <div class="eb-output" id="out-hope"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 6 ============================= -->
+<div class="page" id="page6">
+  <div style="width:100%;max-width:700px;margin:0 auto">
+    <div class="page-title" style="color:var(--gold);text-shadow:0 0 20px var(--gold)">ALIEN ARCADE</div>
+    <div class="page-subtitle">MISSION-GRADE ENTERTAINMENT SYSTEMS</div>
+
+    <div class="arcade-score-board">
+      <div class="score-item"><div class="score-label">SCORE</div><div class="score-num" id="arcadeScore">0</div></div>
+      <div class="score-item"><div class="score-label">HIGH SCORE</div><div class="score-num" id="arcadeHigh">0</div></div>
+      <div class="score-item"><div class="score-label">LEVEL</div><div class="score-num" id="arcadeLevel">1</div></div>
+    </div>
+
+    <div class="game-tabs">
+      <button class="game-tab active" onclick="selectGame('stars',this)">STAR CATCHER</button>
+      <button class="game-tab" onclick="selectGame('planets',this)">PLANET DODGE</button>
+      <button class="game-tab" onclick="selectGame('smile',this)">SMILE BURST</button>
+    </div>
+
+    <div class="game-container">
+      <canvas id="gameCanvas" width="700" height="380"></canvas>
+      <div class="game-overlay show" id="gameOverlay">
+        <div class="go-title" id="goTitle">STAR CATCHER</div>
+        <div class="go-score" id="goDesc">Catch the falling stars! Don't miss too many.</div>
+        <button class="glow-btn btn-cyan" style="font-size:12px;padding:10px 24px" onclick="startGame()">START GAME</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 7 ============================= -->
+<div class="page" id="page7" style="background:rgba(0,50,0,0.15)">
+  <div class="secret-container">
+    <div class="page-title" style="color:var(--green);text-shadow:0 0 30px var(--green);letter-spacing:4px">SECRET SYSTEM FOUND</div>
+    <div class="page-subtitle" style="color:rgba(0,255,136,0.6)">ALIEN MODE ACTIVATED &mdash; CLEARANCE LEVEL OMEGA</div>
+
+    <div class="ufo-parade">
+      <div class="ufo-fly">
+        <svg width="70" height="40" viewBox="0 0 70 40" fill="none">
+          <ellipse cx="35" cy="28" rx="28" ry="10" fill="rgba(0,255,136,0.15)" stroke="#00ff88" stroke-width="1.5"/>
+          <ellipse cx="35" cy="20" rx="16" ry="12" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="1.5"/>
+          <circle cx="35" cy="16" r="5" fill="rgba(0,255,136,0.3)" stroke="#00ff88"/>
+          <circle cx="22" cy="29" r="3" fill="rgba(0,255,136,0.4)"/>
+          <circle cx="35" cy="32" r="3" fill="rgba(0,255,136,0.4)"/>
+          <circle cx="48" cy="29" r="3" fill="rgba(0,255,136,0.4)"/>
+        </svg>
+      </div>
+      <div class="ufo-fly">
+        <svg width="50" height="30" viewBox="0 0 50 30" fill="none">
+          <ellipse cx="25" cy="21" rx="20" ry="7" fill="rgba(0,255,136,0.12)" stroke="#00ff88" stroke-width="1.2"/>
+          <ellipse cx="25" cy="15" rx="11" ry="9" fill="rgba(0,255,136,0.08)" stroke="#00ff88" stroke-width="1.2"/>
+          <circle cx="25" cy="11" r="4" fill="rgba(0,255,136,0.25)" stroke="#00ff88"/>
+        </svg>
+      </div>
+      <div class="ufo-fly">
+        <svg width="80" height="48" viewBox="0 0 80 48" fill="none">
+          <ellipse cx="40" cy="34" rx="32" ry="12" fill="rgba(0,255,136,0.12)" stroke="#00ff88" stroke-width="1.5"/>
+          <ellipse cx="40" cy="22" rx="18" ry="14" fill="rgba(0,255,136,0.08)" stroke="#00ff88" stroke-width="1.5"/>
+          <circle cx="40" cy="17" r="6" fill="rgba(0,255,136,0.25)" stroke="#00ff88"/>
+          <circle cx="25" cy="35" r="3.5" fill="rgba(0,255,136,0.5)"/>
+          <circle cx="40" cy="40" r="3.5" fill="rgba(0,255,136,0.5)"/>
+          <circle cx="55" cy="35" r="3.5" fill="rgba(0,255,136,0.5)"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="glass-card" style="background:rgba(0,40,0,0.2);border-color:rgba(0,255,136,0.2);margin-bottom:20px;text-align:left">
+      <div id="matrixOutput" class="matrix-text" style="min-height:120px;overflow:hidden"></div>
+    </div>
+
+    <div class="alien-badge">CERTIFIED ALIEN</div>
+
+    <div style="margin-top:20px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(0,255,136,0.6);line-height:2">
+        > You are no longer an ordinary Earth citizen.<br>
+        > Maximum Alien Energy detected.<br>
+        > Earth problems are temporarily under investigation.<br>
+        > Reality has been upgraded.<br>
+        > Weirdness level: <span style="color:var(--green)">PERFECT</span><br>
+        > Alien status: <span style="color:var(--green)">CONFIRMED</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 8 ============================= -->
+<div class="page" id="page8">
+  <div style="width:100%;max-width:1000px;margin:0 auto">
+    <div class="page-title" style="color:var(--gold);text-shadow:0 0 20px var(--gold)">ACHIEVEMENT CENTER</div>
+    <div class="page-subtitle">YOUR RECORD OF AWESOMENESS</div>
+    <div class="achieve-grid" id="achieveGrid"></div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 9 ============================= -->
+<div class="page" id="page9">
+  <div class="big-btn-room" style="width:100%;text-align:center">
+    <div class="page-title" style="color:var(--red);text-shadow:0 0 20px var(--red);margin-bottom:8px">CRITICAL WARNING ZONE</div>
+    <div class="big-btn-warning">DO NOT PRESS THE BUTTON</div>
+    <div style="margin:20px 0">
+      <button id="theButton" onclick="pressTheBigButton()">DO NOT<br>PRESS</button>
+    </div>
+    <div id="buttonResult">
+      <div class="result-big">TOO LATE.</div>
+      <div class="result-sub">
+        Alien has officially been declared amazing.<br>
+        <span style="color:var(--gold)">This decision is permanent and cannot be undone.</span><br>
+        The universe has been notified.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= PAGE 10 ============================= -->
+<div class="page" id="page10">
+  <div class="still-container">
+    <div class="still-title">STILL<br>HERE</div>
+    <div class="still-line big">You survived today.</div>
+    <div class="still-line">That counts for more than you think.</div>
+    <div class="still-line highlight">Tomorrow is another mission.</div>
+    <div class="still-line">The universe isn't finished with you yet.</div>
+    <div class="still-line" style="margin-top:20px;opacity:0.5;font-size:14px">You showed up. That matters.</div>
+    <div style="margin-top:32px">
+      <div style="font-family:'Orbitron',sans-serif;font-size:18px;color:rgba(0,245,255,0.7);letter-spacing:4px">
+        See you tomorrow, Alien.
+      </div>
+    </div>
+    <div id="page10countdown" style="margin-top:16px"></div>
+    <div style="margin-top:24px">
+      <button class="glow-btn btn-cyan" style="font-size:12px;padding:12px 24px" onclick="saveStillHere()">
+        MARK THIS MOMENT
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================================================
+// CORE STATE
+// ===================================================
+let happiness = parseInt(localStorage.getItem('alienHappiness')) || 67;
+let soundOn = true;
+let logoClicks = 0;
+let secretUnlocked = localStorage.getItem('alienSecret') === '1';
+let page10Unlocked = localStorage.getItem('alienPage10') === '1';
+let currentPage = 1;
+let currentGame = 'stars';
+let gameRunning = false;
+let gameAnimId = null;
+let arcadeScore = 0;
+let arcadeHigh = parseInt(localStorage.getItem('alienArcadeHigh')) || 0;
+let achievements = JSON.parse(localStorage.getItem('alienAchievements')) || {};
+let buttonPressed = localStorage.getItem('alienButtonPressed') === '1';
+let startTime = Date.now();
+let matrixInterval = null;
+
+// 5 minute timer for page 10
+if (!page10Unlocked) {
+  setTimeout(() => {
+    page10Unlocked = true;
+    localStorage.setItem('alienPage10', '1');
+    document.getElementById('nav10').classList.remove('locked');
+    showNotification('PAGE 10 UNLOCKED: STILL HERE');
+    unlockAchievement('still_here');
+  }, 5 * 60 * 1000);
+} else {
+  document.getElementById('nav10').classList.remove('locked');
+}
+
+if (secretUnlocked) {
+  document.getElementById('nav7').classList.remove('locked');
+}
+
+// ===================================================
+// STARS
+// ===================================================
+const canvas = document.getElementById('starCanvas');
+const ctx = canvas.getContext('2d');
+let stars = [], planets = [], shootingStars = [], ufos = [];
+let hiddenStars = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  initStars();
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 220; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.8 + 0.3,
+      speed: Math.random() * 0.4 + 0.05,
+      opacity: Math.random() * 0.7 + 0.2,
+      tw: Math.random() * Math.PI * 2,
+      twSpeed: Math.random() * 0.02 + 0.005,
+      color: ['#ffffff','#aaddff','#ffddaa','#ccaaff'][Math.floor(Math.random()*4)]
+    });
+  }
+  planets = [];
+  for (let i = 0; i < 4; i++) {
+    planets.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height * 0.7 + 50,
+      r: Math.random() * 18 + 10,
+      color: ['#1a4066','#2d1a4f','#1a3d1a','#3d1a1a'][i],
+      border: ['#0044aa','#6600aa','#008833','#aa2200'][i],
+      speedX: (Math.random() - 0.5) * 0.08,
+      speedY: (Math.random() - 0.5) * 0.04,
+      opacity: 0.4
+    });
+  }
+  shootingStars = [];
+  ufos = [];
+}
+
+function drawBg() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Stars
+  for (let s of stars) {
+    s.tw += s.twSpeed;
+    let op = s.opacity * (0.7 + 0.3 * Math.sin(s.tw));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = op;
+    ctx.fill();
+    s.y += s.speed * 0.1;
+    if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+  }
+
+  // Planets
+  for (let p of planets) {
+    ctx.globalAlpha = p.opacity;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    let grad = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
+    grad.addColorStop(0, p.border);
+    grad.addColorStop(1, p.color);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = p.border;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    p.x += p.speedX;
+    p.y += p.speedY;
+    if (p.x < -60) p.x = canvas.width + 60;
+    if (p.x > canvas.width + 60) p.x = -60;
+    if (p.y < -60) p.y = canvas.height + 60;
+    if (p.y > canvas.height + 60) p.y = -60;
+  }
+
+  // Shooting stars
+  for (let i = shootingStars.length - 1; i >= 0; i--) {
+    let ss = shootingStars[i];
+    ctx.globalAlpha = ss.opacity;
+    ctx.beginPath();
+    ctx.moveTo(ss.x, ss.y);
+    ctx.lineTo(ss.x - ss.len * Math.cos(ss.angle), ss.y - ss.len * Math.sin(ss.angle));
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ss.x += ss.vx;
+    ss.y += ss.vy;
+    ss.opacity -= 0.02;
+    if (ss.opacity <= 0 || ss.x > canvas.width + 100 || ss.y > canvas.height + 100) {
+      shootingStars.splice(i, 1);
+    }
+  }
+
+  // UFOs
+  for (let i = ufos.length - 1; i >= 0; i--) {
+    let u = ufos[i];
+    ctx.globalAlpha = 0.7;
+    // Draw UFO
+    ctx.save();
+    ctx.translate(u.x, u.y);
+    // body
+    ctx.beginPath();
+    ctx.ellipse(0, 5, 22, 7, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(100,200,255,0.2)';
+    ctx.fill();
+    ctx.strokeStyle = '#00f5ff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // dome
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 12, 9, 0, Math.PI, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,245,255,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#00f5ff';
+    ctx.stroke();
+    // lights
+    for (let l = 0; l < 3; l++) {
+      ctx.beginPath();
+      ctx.arc(-12 + l*12, 7, 2, 0, Math.PI*2);
+      ctx.fillStyle = l % 2 === 0 ? '#00f5ff' : '#ff00aa';
+      ctx.fill();
+    }
+    ctx.restore();
+    u.x += u.speed;
+    u.y += Math.sin(u.x * 0.02) * 0.5;
+    if (u.x > canvas.width + 100) ufos.splice(i, 1);
+  }
+
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(drawBg);
+}
+
+// Shooting star timer
+setInterval(() => {
+  if (Math.random() < 0.4) {
+    shootingStars.push({
+      x: Math.random() * canvas.width * 0.7,
+      y: Math.random() * canvas.height * 0.5,
+      vx: 6 + Math.random() * 5,
+      vy: 3 + Math.random() * 3,
+      len: 60 + Math.random() * 60,
+      angle: Math.atan2(3, 6),
+      opacity: 1
+    });
+  }
+}, 2000);
+
+// UFO timer
+setInterval(() => {
+  if (Math.random() < 0.3 && ufos.length < 2) {
+    ufos.push({
+      x: -80,
+      y: 80 + Math.random() * 200,
+      speed: 1.5 + Math.random() * 1.5
+    });
+  }
+}, 8000);
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+drawBg();
+
+// ===================================================
+// HAPPINESS ENGINE
+// ===================================================
+const MILESTONES = {
+  100: "Nice.", 500: "That's impressive.", 1000: "Dangerously High Happiness Detected.",
+  5000: "Mission Control Is Monitoring.", 10000: "Reality Is Smiling.",
+  50000: "Cosmic Levels Reached.", 100000: "Universe Is Paying Attention.",
+  500000: "Stars Are Rearranging Themselves.", 1000000: "Cosmic Happiness Levels Reached.",
+  1000000000: "Reality Appears To Be Smiling."
+};
+let lastMilestoneShown = 0;
+
+function addHappiness(amount) {
+  let prev = happiness;
+  happiness += amount;
+  localStorage.setItem('alienHappiness', happiness);
+  updateHappinessUI();
+  checkMilestone(prev);
+}
+
+function updateHappinessUI() {
+  const formatted = formatNum(happiness);
+  document.getElementById('happinessValue').textContent = formatted;
+  document.getElementById('g1val').textContent = formatted;
+  // Fill bar is log-based
+  const pct = Math.min(100, (Math.log10(Math.max(1, happiness)) / 10) * 100);
+  document.getElementById('happinessFill').style.width = pct + '%';
+}
+
+function formatNum(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return Math.floor(n).toString();
+}
+
+function checkMilestone(prev) {
+  for (let threshold in MILESTONES) {
+    let t = parseInt(threshold);
+    if (prev < t && happiness >= t && lastMilestoneShown < t) {
+      lastMilestoneShown = t;
+      showMilestone(t, MILESTONES[threshold]);
+      break;
+    }
+  }
+}
+
+function showMilestone(num, msg) {
+  document.getElementById('milestoneNum').textContent = formatNum(num);
+  document.getElementById('milestoneMsg').textContent = msg;
+  document.getElementById('milestonePopup').classList.add('show');
+  triggerConfetti(30);
+  triggerFireworks();
+}
+
+function hideMilestone() {
+  document.getElementById('milestonePopup').classList.remove('show');
+}
+
+updateHappinessUI();
+
+// ===================================================
+// ACHIEVEMENTS
+// ===================================================
+const ALL_ACHIEVEMENTS = [
+  { id:'first_smile', name:'Smiled For 2 Seconds', desc:'You started the system.' },
+  { id:'fear_destroy', name:'Fear Destroyer', desc:'Fears replaced with confidence.' },
+  { id:'certified_alien', name:'Certified Alien', desc:'Found the secret page.' },
+  { id:'heart_repair', name:'Heart Repair Expert', desc:'Heart scanned and diagnosed.' },
+  { id:'mission_spec', name:'Mission Specialist', desc:'Completed 5 missions.' },
+  { id:'officially_amazing', name:'Officially Amazing', desc:'Pressed the forbidden button.' },
+  { id:'earth_resist', name:'Earth Resistance Expert', desc:'Survived with dignity.' },
+  { id:'cosmic_explore', name:'Cosmic Explorer', desc:'Visited all pages.' },
+  { id:'still_here', name:'Still Here', desc:'Stayed for 5 minutes.' },
+  { id:'vault_open', name:'Vault Breaker', desc:'Opened the Compliment Vault.' },
+  { id:'arcade_star', name:'Arcade Star', desc:'Scored 50+ in the arcade.' },
+  { id:'happiness_100', name:'Happiness: 100', desc:'Crossed the first milestone.' },
+  { id:'compliment_10', name:'Compliment Collector', desc:'Collected 10 compliments.' },
+  { id:'future_scan', name:'Time Traveler', desc:'Scanned the future 3 times.' },
+  { id:'secret_hero', name:'Hidden Hero', desc:'Found a hidden star.' }
+];
+
+function unlockAchievement(id) {
+  if (achievements[id]) return;
+  achievements[id] = true;
+  localStorage.setItem('alienAchievements', JSON.stringify(achievements));
+  const a = ALL_ACHIEVEMENTS.find(x => x.id === id);
+  if (a) showAchievePopup(a);
+  renderAchievements();
+  addHappiness(50);
+}
+
+function showAchievePopup(a) {
+  document.getElementById('achieveName').textContent = a.name;
+  document.getElementById('achieveDesc').textContent = a.desc;
+  const popup = document.getElementById('achievePopup');
+  popup.style.display = 'block';
+  popup.style.animation = 'none';
+  void popup.offsetWidth;
+  popup.style.animation = 'slideInRight 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+  clearTimeout(popup._t);
+  popup._t = setTimeout(() => { popup.style.display = 'none'; }, 4000);
+}
+
+function renderAchievements() {
+  const grid = document.getElementById('achieveGrid');
+  if (!grid) return;
+  grid.innerHTML = ALL_ACHIEVEMENTS.map(a => {
+    const unlocked = !!achievements[a.id];
+    return `<div class="achieve-card ${unlocked ? 'unlocked' : 'locked'}">
+      <div class="achieve-card-icon">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          ${unlocked
+            ? `<path d="M20 4l4 10h10l-8 6 3 10-9-6-9 6 3-10-8-6h10z" fill="rgba(255,215,0,0.15)" stroke="#ffd700" stroke-width="1.5"/>`
+            : `<circle cx="20" cy="20" r="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/><path d="M15 20h10M20 15v10" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-linecap="round"/>`
+          }
+        </svg>
+      </div>
+      <div class="achieve-card-name">${unlocked ? a.name : '???'}</div>
+      <div class="achieve-card-desc">${unlocked ? a.desc : 'Locked'}</div>
+      ${!unlocked ? '<div class="locked-badge"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="5" y="9" width="10" height="8" rx="2" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/><path d="M7 9V7a3 3 0 016 0v2" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" fill="none"/></svg></div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+// ===================================================
+// PARTICLES & EFFECTS
+// ===================================================
+function spawnParticles(x, y, count, colors) {
+  const container = document.getElementById('particleContainer');
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+    const dist = 60 + Math.random() * 100;
+    const size = 4 + Math.random() * 8;
+    p.style.cssText = `
+      left:${x}px; top:${y}px; width:${size}px; height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --tx:${Math.cos(angle)*dist}px; --ty:${Math.sin(angle)*dist}px;
+      box-shadow:0 0 6px currentColor;
+    `;
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
+}
+
+function triggerConfetti(count) {
+  const container = document.getElementById('particleContainer');
+  const colors = ['#00f5ff','#b400ff','#ff00aa','#ffd700','#00ff88','#ffffff'];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.cssText = `
+        left:${Math.random()*100}vw; top:-10px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        border-radius:${Math.random() > 0.5 ? '50%' : '0'};
+        width:${6+Math.random()*8}px; height:${6+Math.random()*8}px;
+        animation-duration:${2+Math.random()*2}s;
+        animation-delay:${Math.random()*0.5}s;
+      `;
+      container.appendChild(c);
+      setTimeout(() => c.remove(), 3000);
+    }, i * 40);
+  }
+}
+
+function triggerFireworks() {
+  for (let f = 0; f < 5; f++) {
+    setTimeout(() => {
+      const x = 10 + Math.random() * 80;
+      const y = 10 + Math.random() * 60;
+      spawnParticles(
+        window.innerWidth * x / 100,
+        window.innerHeight * y / 100,
+        16,
+        ['#ffd700','#ff00aa','#00f5ff','#00ff88']
+      );
+    }, f * 200);
+  }
+}
+
+// ===================================================
+// NOTIFICATIONS
+// ===================================================
+let notifTimeout;
+function showNotification(msg) {
+  const n = document.getElementById('notification');
+  n.textContent = msg;
+  n.classList.add('show');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+// ===================================================
+// PAGE TRANSITIONS
+// ===================================================
+const transitionTexts = [
+  'WARP SPEED ENGAGED', 'HOLOGRAM TRANSITION', 'VAULT DOOR OPENING',
+  'TIMELINE SCAN', 'EMERGENCY ALERT', 'ARCADE PORTAL ACTIVATED',
+  'SECRET BREACH DETECTED', 'ACHIEVEMENT UNLOCK', 'SIREN SEQUENCE INITIATED',
+  'COSMIC FADE'
+];
+
+function goTo(page) {
+  if (page === 7 && !secretUnlocked) { showNotification('Click the AECC logo 10 times to unlock'); return; }
+  if (page === 10 && !page10Unlocked) { showNotification('Return in 5 minutes to unlock this page'); return; }
+  if (page === currentPage) return;
+
+  stopGame();
+
+  const overlay = document.getElementById('transOverlay');
+  const transText = document.getElementById('transText');
+  transText.style.color = 'var(--cyan)';
+  transText.style.textShadow = '0 0 20px var(--cyan)';
+  transText.textContent = transitionTexts[page - 1] || 'LOADING';
+
+  if (page === 5) {
+    // Emergency siren effect
+    const siren = document.getElementById('siren');
+    siren.classList.add('show');
+    setTimeout(() => siren.classList.remove('show'), 800);
+  }
+
+  overlay.classList.add('show');
+
+  setTimeout(() => {
+    document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+    const target = document.getElementById('page' + page);
+    target.style.display = 'flex';
+    setTimeout(() => target.classList.add('active'), 50);
+    currentPage = page;
+
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
+    document.querySelectorAll('.nav-btn')[page - 1]?.classList.add('active-nav');
+
+    overlay.classList.remove('show');
+
+    onPageEnter(page);
+  }, 700);
+}
+
+function onPageEnter(page) {
+  if (page === 3) { buildComplimentVault(); unlockAchievement('vault_open'); }
+  if (page === 7) { startMatrixEffect(); unlockAchievement('certified_alien'); addHappiness(200); }
+  if (page === 8) { renderAchievements(); }
+  if (page === 9) {
+    if (buttonPressed) {
+      document.getElementById('buttonResult').style.display = 'block';
+      document.getElementById('theButton').style.display = 'none';
+    }
+  }
+  if (page === 10) { unlockAchievement('still_here'); addHappiness(300); }
+  addHappiness(10);
+  checkAllPagesVisited();
+}
+
+// Track visited pages
+let visitedPages = JSON.parse(localStorage.getItem('alienVisited') || '[]');
+function checkAllPagesVisited() {
+  if (!visitedPages.includes(currentPage)) visitedPages.push(currentPage);
+  localStorage.setItem('alienVisited', JSON.stringify(visitedPages));
+  if (visitedPages.length >= 9) unlockAchievement('cosmic_explore');
+}
+
+// ===================================================
+// PAGE 1: BOOT SEQUENCE
+// ===================================================
+function runBoot() {
+  const steps = [
+    { pct: 10, msg: 'Loading 10%... Calibrating sensors' },
+    { pct: 25, msg: 'Loading 25%... Detecting alien presence' },
+    { pct: 50, msg: 'Loading 50%... Analyzing awesomeness levels' },
+    { pct: 75, msg: 'Loading 75%... Scanning for Alien signature' },
+    { pct: 100, msg: 'Loading 100%... SYSTEM ONLINE' }
+  ];
+  let i = 0;
+  function step() {
+    if (i >= steps.length) {
+      setTimeout(() => {
+        document.getElementById('bootStatus').textContent = 'ALIEN DETECTED';
+        document.getElementById('scanResults').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('welcomeMsg').style.display = 'block';
+          unlockAchievement('first_smile');
+        }, 2000);
+      }, 400);
+      return;
+    }
+    document.getElementById('bootFill').style.width = steps[i].pct + '%';
+    document.getElementById('bootStatus').textContent = steps[i].msg;
+    i++;
+    setTimeout(step, 600 + Math.random() * 300);
+  }
+  step();
+}
+
+function enterControlCenter() {
+  addHappiness(50);
+  goTo(2);
+  triggerConfetti(20);
+}
+
+// ===================================================
+// PAGE 2: CONTROLS
+// ===================================================
+const controlSequences = {
+  sadness: [
+    'Removing sadness...',
+    '42% removed...',
+    '76% removed...',
+    'Oops. Sadness is stubborn.',
+    'Deploying emergency hugs.',
+    'Sadness: NEUTRALIZED.'
+  ],
+  happiness: [
+    'Calculating happiness delta...',
+    `Happiness increased to ${formatNum(happiness + 9932)}!`,
+    'Confetti protocol engaged.',
+    'All systems reporting MAXIMUM JOY.',
+    'Warning: Happiness levels dangerously high.'
+  ],
+  fear: [
+    'Scanning fears...',
+    'Fear detected: analyzing...',
+    'Replacing fears with snacks and confidence.',
+    'Fear elimination: 100%',
+    'Deploying inner strength backup systems.'
+  ],
+  heart: [
+    'Analyzing heart...',
+    'Heart functioning normally.',
+    'Diagnosis: Too much caring. Not enough self-credit.',
+    'Prescription: Be kinder to yourself.',
+    'Heart repair: COMPLETE.'
+  ],
+  future: [
+    'Scanning future timeline...',
+    'Accessing quantum probability matrix...',
+    'Future Alien appears happy.',
+    'Future Alien achieved important goals.',
+    'Future Alien would like you to keep going.',
+    'Recommendation: Trust the process.'
+  ]
+};
+
+let missionsDone = 0;
+let complimentsSummoned = 0;
+let futureScansDone = 0;
+
+function runControl(card, type) {
+  if (card.classList.contains('running')) return;
+  card.classList.add('running');
+  const out = document.getElementById('out-' + type);
+  const seq = controlSequences[type];
+  let i = 0;
+  function next() {
+    if (i >= seq.length) {
+      card.classList.remove('running');
+      addHappiness(80);
+      missionsDone++;
+      if (missionsDone >= 5) unlockAchievement('mission_spec');
+      if (type === 'fear') unlockAchievement('fear_destroy');
+      if (type === 'heart') unlockAchievement('heart_repair');
+      triggerConfetti(10);
+      return;
+    }
+    out.textContent = seq[i];
+    i++;
+    setTimeout(next, 700);
+  }
+  next();
+}
+
+const COMPLIMENTS = [
+  "You notice things other people miss entirely.",
+  "Your kindness changes people without them realizing it.",
+  "You're capable of more than you believe right now.",
+  "The way you care about things is genuinely rare.",
+  "You make the world more interesting just by being in it.",
+  "You keep going even when things get hard. That's everything.",
+  "You have a mind that sees angles others can't.",
+  "Your sensitivity is a strength, not a weakness.",
+  "The people in your life are lucky and they know it.",
+  "You carry yourself with more grace than you realize.",
+  "You ask better questions than most people do.",
+  "Your future self is already proud of you.",
+  "You find beauty in things others walk right past.",
+  "You're the kind of person who makes rooms feel different.",
+  "You've survived 100% of your hardest days so far.",
+  "Your brain works in ways that are genuinely impressive.",
+  "You hold people up without even noticing you're doing it.",
+  "There's a quiet courage in you that doesn't announce itself.",
+  "You're funnier and sharper than you give yourself credit for.",
+  "You have an eye for what actually matters.",
+  "People trust you instinctively. That means something.",
+  "You're weird in the best way that word can mean.",
+  "Your heart is enormous and that's not a flaw.",
+  "You make difficult things look easier than they are.",
+  "There's a version of you in the future who made it.",
+  "You adapt. That's harder than it looks.",
+  "Your presence is calming to people around you.",
+  "You pay attention. Truly. Most people don't.",
+  "You're allowed to take up space and you should.",
+  "You see potential in things others give up on.",
+  "Your instincts are sharper than you think.",
+  "You bring a specific kind of warmth nowhere else has.",
+  "You've already changed someone's life without knowing it.",
+  "You dream bigger than you say out loud.",
+  "Your taste is genuinely excellent.",
+  "You're building something even when it doesn't look like it.",
+  "You're more consistent than you give yourself credit for.",
+  "People feel seen when they're with you.",
+  "You care about doing things properly. That's rare.",
+  "Your laugh is one of the best sounds.",
+  "You think before you speak. That's underrated.",
+  "You're exactly where you need to be.",
+  "You make hard decisions with integrity.",
+  "You're growing even on the days it doesn't feel like it.",
+  "You are someone's favorite person and they mean it.",
+  "You handle uncertainty with more skill than you admit.",
+  "Your creativity is genuinely surprising.",
+  "You stick around when others leave. That counts.",
+  "You see people clearly and that's a real gift.",
+  "You're building a version of yourself worth knowing.",
+  "You are irreplaceable in ways that matter.",
+  "You are doing better than you feel you are.",
+  "You're allowed to be proud of small wins too.",
+  "You're interesting to talk to in a real way.",
+  "You notice when things are wrong and you try to fix them.",
+  "Your determination is quiet but it's there.",
+  "You're exactly the kind of person the world needs.",
+  "You are not your worst day.",
+  "You have strengths you haven't used yet.",
+  "You bring a specific kind of magic to things.",
+  "You are worth showing up for every single day.",
+  "Your potential hasn't even peaked yet.",
+  "You're going to be okay. Actually okay.",
+  "You make people's days without meaning to.",
+  "You understand things most people don't bother to.",
+  "You carry depth that doesn't always show on the surface.",
+  "You're brave in ways you don't call bravery.",
+  "Your attention to detail is a superpower.",
+  "You're one of the interesting ones. For real.",
+  "You have a future that hasn't been written yet and it's good.",
+  "You're allowed to rest without earning it first.",
+  "You matter in rooms you've already left.",
+  "The effort you put in is noticed even when it isn't said.",
+  "You're softer and stronger than you think at the same time.",
+  "There is no one else who does you better than you.",
+  "You're an original in a world full of copies.",
+  "You're building resilience every day whether you know it or not.",
+  "You forgive people. That takes real strength.",
+  "You choose to keep going. That's everything.",
+  "You light things up just by being genuinely yourself.",
+  "You are, without question, worth it.",
+  "Your story isn't over and the best parts are ahead.",
+  "You're more loved than you currently believe.",
+  "You have something specific that nobody else carries.",
+  "You face things head-on even when it's terrifying.",
+  "You are already enough.",
+  "You're going to do something genuinely great.",
+  "The universe made exactly one of you for a reason.",
+  "You make hard things look possible.",
+  "You're the kind of rare that doesn't happen by accident.",
+  "You carry other people's weights quietly and that matters.",
+  "You're allowed to believe in yourself.",
+  "You're magnificent and you should hear that more often.",
+  "You're handling this better than you think.",
+  "Your value doesn't decrease because someone couldn't see it.",
+  "You are a main character. Act accordingly.",
+  "You're going places and the universe is excited about it.",
+  "You see the beauty in the world even when things are hard.",
+  "The fact that you keep trying makes you extraordinary."
+];
+
+function summonCompliment() {
+  const c = COMPLIMENTS[Math.floor(Math.random() * COMPLIMENTS.length)];
+  document.getElementById('out-compliment').textContent = c;
+  const display = document.getElementById('complimentDisplay');
+  display.style.display = 'block';
+  document.getElementById('complimentBox').textContent = c;
+  addHappiness(30);
+  complimentsSummoned++;
+  if (complimentsSummoned >= 10) unlockAchievement('compliment_10');
+  triggerConfetti(8);
+  spawnParticles(window.innerWidth/2, window.innerHeight/2, 10, ['#b400ff','#00f5ff','#ffd700']);
+}
+
+// ===================================================
+// PAGE 3: VAULT
+// ===================================================
+function buildComplimentVault() {
+  const grid = document.getElementById('complimentGrid');
+  if (grid.innerHTML !== '') return;
+  grid.innerHTML = COMPLIMENTS.map((c, i) => `
+    <div class="compliment-card" onclick="flipCard(this,${i})" data-flipped="0">
+      <div class="card-num">FILE ${String(i+1).padStart(3,'0')}</div>
+      <span>${c}</span>
+    </div>
+  `).join('');
+  // Animate vault spokes
+  let angle = 0;
+  const spokesEl = document.getElementById('vaultSpokes');
+  if (spokesEl) {
+    setInterval(() => {
+      angle += 2;
+      spokesEl.setAttribute('transform', `rotate(${angle} 100 70)`);
+    }, 50);
+  }
+}
+
+function flipCard(el, i) {
+  if (el.dataset.flipped === '1') return;
+  el.dataset.flipped = '1';
+  el.classList.add('flipped');
+  addHappiness(15);
+  spawnParticles(
+    el.getBoundingClientRect().left + el.offsetWidth/2,
+    el.getBoundingClientRect().top + el.offsetHeight/2,
+    6, ['#b400ff','#ffd700']
+  );
+}
+
+function flipRandomCard() {
+  const cards = document.querySelectorAll('.compliment-card[data-flipped="0"]');
+  if (cards.length === 0) { showNotification('All entries revealed!'); return; }
+  const card = cards[Math.floor(Math.random() * cards.length)];
+  card.scrollIntoView({ behavior:'smooth', block:'center' });
+  setTimeout(() => flipCard(card), 300);
+}
+
+// ===================================================
+// PAGE 4: FUTURE SCANNER
+// ===================================================
+const FUTURE_EVENTS = [
+  "Future Alien learned something that changed everything.",
+  "Future Alien woke up one day and felt genuinely light.",
+  "Future Alien achieved a goal they'd almost stopped believing in.",
+  "Future Alien laughed so hard their stomach hurt.",
+  "Future Alien explored somewhere completely new.",
+  "Future Alien discovered something that made the world bigger.",
+  "Future Alien found exactly what they were looking for.",
+  "Future Alien made someone's day without even trying.",
+  "Future Alien solved a problem everyone said was impossible.",
+  "Future Alien would like you to know: it gets better.",
+  "Future Alien is proud of every hard day you survived.",
+  "Future Alien built something they're genuinely proud of.",
+  "Future Alien met someone who completely changed their world.",
+  "Future Alien is looking back right now and smiling at you.",
+  "Future Alien traveled somewhere that made their heart race.",
+  "Future Alien figured out what they really wanted.",
+  "Future Alien unlocked a version of themselves they'd only dreamed of.",
+  "Future Alien would like to remind you: keep going.",
+  "Future Alien says the rough patches made the good parts better.",
+  "Future Alien conquered the thing that felt impossible.",
+  "Future Alien has a life that would surprise you in the best way.",
+  "Future Alien learned to trust themselves completely.",
+  "Future Alien had a day so good it felt like fiction.",
+  "Future Alien is sending you strength across the timeline.",
+  "Future Alien says you're closer than you think."
+];
+
+const FUTURE_DATES = [
+  "Q3 2025", "Early 2026", "Mid 2025", "Next year",
+  "18 months from now", "In the near future", "Two years ahead",
+  "Coming soon", "Timeline: Soon", "Time code: BRIGHT"
+];
+
+function scanFuture() {
+  const display = document.getElementById('hologramDisplay');
+  const timeline = document.getElementById('futureTimeline');
+
+  display.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(0,255,136,0.7);letter-spacing:2px;text-align:center">SCANNING FUTURE TIMELINES...</div>
+  <svg width="80" height="80" viewBox="0 0 80 80">
+    <circle cx="40" cy="40" r="35" fill="none" stroke="rgba(0,255,136,0.2)" stroke-width="2" stroke-dasharray="8 4"/>
+    <circle cx="40" cy="40" r="22" fill="none" stroke="rgba(0,255,136,0.15)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <circle cx="40" cy="40" r="8" fill="rgba(0,255,136,0.2)" stroke="rgba(0,255,136,0.4)" stroke-width="1.5"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="1s" repeatCount="indefinite"/>
+  </svg>`;
+
+  timeline.innerHTML = '';
+
+  const count = 4 + Math.floor(Math.random() * 4);
+  const selected = [];
+  while (selected.length < count) {
+    const idx = Math.floor(Math.random() * FUTURE_EVENTS.length);
+    if (!selected.includes(idx)) selected.push(idx);
+  }
+
+  selected.forEach((idx, i) => {
+    setTimeout(() => {
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `<div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-date">${FUTURE_DATES[Math.floor(Math.random()*FUTURE_DATES.length)]}</div>
+          <div class="hologram-line" style="animation-delay:0s">${FUTURE_EVENTS[idx]}</div>
+        </div>`;
+      timeline.appendChild(item);
+    }, 800 + i * 500);
+  });
+
+  setTimeout(() => {
+    display.innerHTML = `<div class="hologram-line">SCAN COMPLETE</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(0,255,136,0.5)">
+      ${count} FUTURE EVENTS DETECTED
+      </div>`;
+    addHappiness(60);
+    futureScansDone++;
+    if (futureScansDone >= 3) unlockAchievement('future_scan');
+  }, 1200 + count * 500);
+}
+
+function clearFuture() {
+  document.getElementById('futureTimeline').innerHTML = '';
+  document.getElementById('hologramDisplay').innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(0,255,136,0.5);letter-spacing:2px">AWAITING SCAN COMMAND...</div>`;
+}
+
+// ===================================================
+// PAGE 5: EMERGENCY
+// ===================================================
+const EMERGENCY_DATA = {
+  funny: [
+    "A group of flamingos is called a flamboyance. They knew.",
+    "Sea otters hold hands while sleeping so they don't drift apart.",
+    "Crows remember human faces and will bring you gifts if you're kind to them.",
+    "Sloths can hold their breath longer than dolphins can.",
+    "Wombats produce cube-shaped droppings. Nobody knows why. Science is confused.",
+    "A snail can sleep for 3 years. Goals.",
+    "Cows have best friends and get stressed when separated from them.",
+    "Octopuses have three hearts and they all care about you.",
+    "A day on Venus is longer than a year on Venus. Time is a suggestion.",
+    "Cats were probably not domesticated. They just decided to stay.",
+    "A group of cats is called a clowder. You're welcome.",
+    "Penguins propose with pebbles. Absolutely iconic.",
+    "Butterflies taste with their feet and live their truth.",
+    "Hummingbirds can fly backwards and are showing off.",
+    "Dogs have a specific bark just for humans. They adapted for us.",
+    "Otters have a pocket in their skin to store their favorite rock.",
+    "Wolves will adopt puppies of other species if abandoned.",
+    "Crows are so smart they've been seen making tools. We're fifth.",
+    "Dolphins have names for each other. Real ones.",
+    "A shrimp's heart is in its head. Relatable."
+  ],
+  cute: [
+    "Baby elephants suck their trunks for comfort, like babies suck thumbs.",
+    "Otters hold hands while sleeping so they don't drift apart in the water.",
+    "Penguins look for the smoothest pebble to give as a gift.",
+    "Dogs recognize the sound of their owner's car from a block away.",
+    "Cats slow-blink at people they trust. It's a feline 'I love you.'",
+    "Baby goats develop accents from their herd. Regional dialects.",
+    "Horses smile to smell things better. They're also just happy to see you.",
+    "Squirrels forget where they bury most of their nuts, accidentally planting forests.",
+    "A baby panda is the size of a stick of butter at birth.",
+    "Cows have been observed running and jumping with joy on the first warm spring day.",
+    "Elephants mourn their dead and return to the same spot years later.",
+    "Dogs copy human yawns because they feel empathy for us.",
+    "Dolphins call each other by name and remember it for decades.",
+    "Rabbits 'binky' - jump and twist in the air - when they're happy.",
+    "Baby sea turtles hum to each other from inside their shells.",
+    "Rats laugh when tickled, at a frequency too high for humans to hear.",
+    "Chickens dream during REM sleep. They have whole adventures.",
+    "Bees recognize human faces. If you've been kind to a bee, it remembers.",
+    "Polar bear mothers sing to their cubs while nursing.",
+    "Prairie dogs greet each other with a 'kiss', pressing their teeth together."
+  ],
+  mission: [
+    "MISSION: Find something blue in your surroundings. Report back.",
+    "MISSION: Smile for exactly 2 seconds. Count out loud. It works.",
+    "MISSION: Drink a full glass of water. Right now. Hydration is a win.",
+    "MISSION: Name three things you can see, hear, and touch.",
+    "MISSION: Stand up and stretch for 15 seconds. Full extension.",
+    "MISSION: Think of one good thing that happened this week.",
+    "MISSION: Send a one-line message to someone you like.",
+    "MISSION: Find something that smells good nearby.",
+    "MISSION: Take three slow breaths. In through nose, out through mouth.",
+    "MISSION: Look out a window for 20 seconds. Nature included.",
+    "MISSION: Think of one thing you're actually good at. No dismissing it.",
+    "MISSION: Write your name in the air with your non-dominant hand.",
+    "MISSION: Find something in the room that makes you slightly happy.",
+    "MISSION: Say one true nice thing about yourself. Out loud.",
+    "MISSION: Eat something delicious in the next 30 minutes.",
+    "MISSION: Watch one funny video. Doctor's orders.",
+    "MISSION: Close your eyes for 10 seconds and do nothing.",
+    "MISSION: Think of someone who would be glad you're okay.",
+    "MISSION: Name the last song that got stuck in your head.",
+    "MISSION: Place your hand on your chest. Feel your heartbeat. You made it."
+  ],
+  fact: [
+    "Honey never spoils. 3000-year-old honey found in Egyptian tombs was still edible.",
+    "There are more possible iterations of a game of chess than atoms in the observable universe.",
+    "A bolt of lightning is five times hotter than the surface of the sun.",
+    "Your brain uses 20% of your body's total energy. You're always working hard.",
+    "Octopuses have been observed dreaming, their skin changing color in their sleep.",
+    "The human eye can detect a single photon of light in complete darkness.",
+    "Every human being has a unique tongue print, like fingerprints.",
+    "There are more trees on Earth than stars in the Milky Way.",
+    "A single cloud can weigh over a million pounds.",
+    "The speed of light is the fastest, but your thoughts aren't far behind.",
+    "DNA in one human body, stretched out, would reach Pluto and back 17 times.",
+    "The average person walks about 100,000 miles in their lifetime. That's 4 times around Earth.",
+    "Technically, all the gold on Earth came from meteors. You're living on treasure.",
+    "Your bones are, gram for gram, stronger than steel.",
+    "A teaspoon of neutron star material would weigh 6 billion tons. Space is intense.",
+    "Cleopatra lived closer in time to the Moon landing than to the construction of the pyramids.",
+    "There is a planet made entirely of diamond. It's called 55 Cancri e.",
+    "The universe is 93 billion light-years wide. You're somewhere in the middle of it.",
+    "Each of your cells contains the complete blueprint for building you.",
+    "The total weight of all ants on Earth is roughly equal to the weight of all humans."
+  ],
+  hope: [
+    "Bad days are weather, not climate. They pass.",
+    "Every difficult thing you've gone through has permanently expanded you.",
+    "You don't have to figure everything out today. Just today.",
+    "Your capacity to feel deeply is proof that you're fully alive.",
+    "Things that feel permanent often aren't. This includes hard things.",
+    "Some of the best things in your life haven't happened yet.",
+    "Struggling is often what growth looks like from the inside.",
+    "You are allowed to not have it all together all the time.",
+    "Every morning is technically a restart. That's real.",
+    "The fact that you're still trying is already something remarkable.",
+    "Nothing about where you are right now is your final destination.",
+    "You've already survived things you thought you couldn't. Remember that.",
+    "Good things can come from nowhere. They have before. They will again.",
+    "You are more resilient than your worst day makes you feel.",
+    "The version of you that makes it through this is already forming.",
+    "It's okay to need time. Time is doing something whether you feel it or not.",
+    "One percent better today is still better. That compounds.",
+    "There are people who would notice if you weren't here. Genuinely.",
+    "You don't need to have a good reason to keep going. Existing is enough.",
+    "The universe has a long history of things working out for people who kept going."
+  ]
+};
+
+function emergencyAction(type) {
+  const out = document.getElementById('out-' + type);
+  const data = EMERGENCY_DATA[type];
+  const msg = data[Math.floor(Math.random() * data.length)];
+  out.textContent = msg;
+  addHappiness(25);
+  out.style.color = '#fff';
+  out.style.animation = 'none';
+  void out.offsetWidth;
+  out.style.animation = 'complimentAppear 0.4s ease';
+}
+
+// ===================================================
+// PAGE 6: ARCADE
+// ===================================================
+let gc, gctx, gameEntities = [], gameState = {};
+const GAME_COLORS = ['#00f5ff','#b400ff','#ff00aa','#ffd700','#00ff88'];
+
+function selectGame(type, btn) {
+  currentGame = type;
+  document.querySelectorAll('.game-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  stopGame();
+  const overlay = document.getElementById('gameOverlay');
+  overlay.classList.add('show');
+  const titles = { stars:'STAR CATCHER', planets:'PLANET DODGE', smile:'SMILE BURST' };
+  const descs = {
+    stars:'Catch the falling stars! Tap/click them before they escape.',
+    planets:'Dodge the planets! Move your ship to avoid collisions.',
+    smile:'Pop the falling smiles before they disappear!'
+  };
+  document.getElementById('goTitle').textContent = titles[type];
+  document.getElementById('goDesc').textContent = descs[type];
+}
+
+function startGame() {
+  gc = document.getElementById('gameCanvas');
+  gctx = gc.getContext('2d');
+  gc.width = gc.offsetWidth;
+  gc.height = Math.min(380, window.innerHeight * 0.45);
+  arcadeScore = 0;
+  document.getElementById('arcadeScore').textContent = '0';
+  document.getElementById('gameOverlay').classList.remove('show');
+  gameRunning = true;
+  gameEntities = [];
+  gameState = { lives: 3, spawnTimer: 0, speed: 1, ship: { x: gc.width/2, y: gc.height - 40, r: 18 } };
+
+  // Input
+  gc.onclick = gc.ontouchstart = function(e) {
+    if (!gameRunning) return;
+    const rect = gc.getBoundingClientRect();
+    const scaleX = gc.width / rect.width;
+    const scaleY = gc.height / rect.height;
+    let cx, cy;
+    if (e.touches) {
+      cx = (e.touches[0].clientX - rect.left) * scaleX;
+      cy = (e.touches[0].clientY - rect.top) * scaleY;
+    } else {
+      cx = (e.clientX - rect.left) * scaleX;
+      cy = (e.clientY - rect.top) * scaleY;
+    }
+    if (currentGame === 'stars' || currentGame === 'smile') {
+      for (let i = gameEntities.length-1; i >= 0; i--) {
+        const e2 = gameEntities[i];
+        if (Math.hypot(cx - e2.x, cy - e2.y) < e2.r + 10) {
+          gameEntities.splice(i, 1);
+          arcadeScore += 10;
+          document.getElementById('arcadeScore').textContent = arcadeScore;
+          spawnParticles(rect.left + e2.x/scaleX, rect.top + e2.y/scaleY, 8, GAME_COLORS);
+          addHappiness(5);
+          if (arcadeScore >= 50) unlockAchievement('arcade_star');
+          break;
+        }
+      }
+    }
+  };
+
+  if (currentGame === 'planets') {
+    gc.onmousemove = gc.ontouchmove = function(e) {
+      if (!gameRunning) return;
+      const rect = gc.getBoundingClientRect();
+      const scaleX = gc.width / rect.width;
+      let cx;
+      if (e.touches) {
+        cx = (e.touches[0].clientX - rect.left) * scaleX;
+        e.preventDefault();
+      } else {
+        cx = (e.clientX - rect.left) * scaleX;
+      }
+      gameState.ship.x = Math.max(20, Math.min(gc.width - 20, cx));
+    };
+  }
+
+  gameLoop();
+}
+
+function gameLoop() {
+  if (!gameRunning) return;
+  gctx.clearRect(0, 0, gc.width, gc.height);
+  // Background
+  gctx.fillStyle = 'rgba(0,8,20,0.9)';
+  gctx.fillRect(0, 0, gc.width, gc.height);
+  // Grid lines
+  gctx.strokeStyle = 'rgba(0,245,255,0.05)';
+  gctx.lineWidth = 1;
+  for (let x = 0; x < gc.width; x += 40) { gctx.beginPath(); gctx.moveTo(x,0); gctx.lineTo(x,gc.height); gctx.stroke(); }
+  for (let y = 0; y < gc.height; y += 40) { gctx.beginPath(); gctx.moveTo(0,y); gctx.lineTo(gc.width,y); gctx.stroke(); }
+
+  gameState.spawnTimer++;
+  const spawnRate = Math.max(20, 50 - Math.floor(arcadeScore / 30));
+  if (gameState.spawnTimer >= spawnRate) {
+    gameState.spawnTimer = 0;
+    spawnEntity();
+  }
+  gameState.speed = 1 + arcadeScore / 200;
+  document.getElementById('arcadeLevel').textContent = Math.floor(1 + arcadeScore/50);
+
+  for (let i = gameEntities.length - 1; i >= 0; i--) {
+    const e = gameEntities[i];
+    e.y += e.speed * gameState.speed;
+    e.rot = (e.rot || 0) + 0.03;
+
+    if (currentGame === 'planets') {
+      const dx = e.x - gameState.ship.x;
+      const dy = e.y - gameState.ship.y;
+      if (Math.hypot(dx, dy) < e.r + gameState.ship.r) {
+        gameEntities.splice(i, 1);
+        gameState.lives--;
+        document.body.classList.add('shake');
+        setTimeout(() => document.body.classList.remove('shake'), 500);
+        if (gameState.lives <= 0) { endGame(); return; }
+        continue;
+      }
+    }
+
+    if (e.y > gc.height + 50) {
+      gameEntities.splice(i, 1);
+      if (currentGame !== 'planets') {
+        gameState.lives--;
+        if (gameState.lives <= 0) { endGame(); return; }
+      }
+      continue;
+    }
+
+    drawEntity(e);
+  }
+
+  if (currentGame === 'planets') drawShip();
+
+  // HUD
+  gctx.fillStyle = 'rgba(0,245,255,0.8)';
+  gctx.font = `bold 14px 'Share Tech Mono', monospace`;
+  for (let l = 0; l < gameState.lives; l++) {
+    gctx.fillText('*', 12 + l * 18, 22);
+  }
+  gctx.fillStyle = 'rgba(255,215,0,0.8)';
+  gctx.fillText('SCORE: ' + arcadeScore, gc.width - 120, 22);
+
+  gameAnimId = requestAnimationFrame(gameLoop);
+}
+
+function spawnEntity() {
+  const x = 20 + Math.random() * (gc.width - 40);
+  if (currentGame === 'stars') {
+    gameEntities.push({ x, y: -20, r: 14, speed: 1.5 + Math.random(), type:'star', color: GAME_COLORS[Math.floor(Math.random()*GAME_COLORS.length)] });
+  } else if (currentGame === 'planets') {
+    const r = 12 + Math.random() * 18;
+    gameEntities.push({ x: 20 + Math.random() * (gc.width-40), y: -40, r, speed: 1.2 + Math.random()*1.5, type:'planet', color: GAME_COLORS[Math.floor(Math.random()*GAME_COLORS.length)] });
+  } else {
+    gameEntities.push({ x, y: -20, r: 16, speed: 1.3 + Math.random(), type:'smile', color: GAME_COLORS[Math.floor(Math.random()*GAME_COLORS.length)] });
+  }
+}
+
+function drawEntity(e) {
+  gctx.save();
+  gctx.translate(e.x, e.y);
+  gctx.rotate(e.rot || 0);
+  gctx.shadowColor = e.color;
+  gctx.shadowBlur = 12;
+  if (e.type === 'star') {
+    drawStar5(gctx, 0, 0, e.r * 0.5, e.r, e.color);
+  } else if (e.type === 'planet') {
+    gctx.beginPath();
+    gctx.arc(0, 0, e.r, 0, Math.PI*2);
+    const g = gctx.createRadialGradient(-e.r*0.3, -e.r*0.3, e.r*0.1, 0, 0, e.r);
+    g.addColorStop(0, e.color + 'cc');
+    g.addColorStop(1, e.color + '44');
+    gctx.fillStyle = g;
+    gctx.fill();
+    gctx.strokeStyle = e.color;
+    gctx.lineWidth = 1.5;
+    gctx.stroke();
+  } else {
+    // Smile face
+    gctx.beginPath();
+    gctx.arc(0, 0, e.r, 0, Math.PI*2);
+    gctx.fillStyle = e.color + '22';
+    gctx.fill();
+    gctx.strokeStyle = e.color;
+    gctx.lineWidth = 2;
+    gctx.stroke();
+    // Eyes
+    gctx.fillStyle = e.color;
+    gctx.beginPath(); gctx.arc(-e.r*0.35, -e.r*0.2, 2, 0, Math.PI*2); gctx.fill();
+    gctx.beginPath(); gctx.arc(e.r*0.35, -e.r*0.2, 2, 0, Math.PI*2); gctx.fill();
+    // Smile
+    gctx.beginPath();
+    gctx.arc(0, e.r*0.1, e.r*0.5, 0.2, Math.PI-0.2);
+    gctx.strokeStyle = e.color;
+    gctx.lineWidth = 2;
+    gctx.stroke();
+  }
+  gctx.restore();
+}
+
+function drawStar5(ctx, cx, cy, innerR, outerR, color) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outerR : innerR;
+    const a = (Math.PI * i) / 5 - Math.PI/2;
+    if (i === 0) ctx.moveTo(cx + r*Math.cos(a), cy + r*Math.sin(a));
+    else ctx.lineTo(cx + r*Math.cos(a), cy + r*Math.sin(a));
+  }
+  ctx.closePath();
+  ctx.fillStyle = color + '44';
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function drawShip() {
+  const s = gameState.ship;
+  gctx.save();
+  gctx.translate(s.x, s.y);
+  gctx.shadowColor = '#00f5ff';
+  gctx.shadowBlur = 15;
+  gctx.strokeStyle = '#00f5ff';
+  gctx.lineWidth = 2;
+  gctx.beginPath();
+  gctx.moveTo(0, -20);
+  gctx.lineTo(14, 10);
+  gctx.lineTo(0, 4);
+  gctx.lineTo(-14, 10);
+  gctx.closePath();
+  gctx.fillStyle = 'rgba(0,245,255,0.15)';
+  gctx.fill();
+  gctx.stroke();
+  // Thruster
+  gctx.beginPath();
+  gctx.moveTo(-6, 10);
+  gctx.lineTo(0, 18 + Math.random()*6);
+  gctx.lineTo(6, 10);
+  gctx.strokeStyle = '#ff8800';
+  gctx.lineWidth = 2;
+  gctx.stroke();
+  gctx.restore();
+}
+
+function endGame() {
+  gameRunning = false;
+  cancelAnimationFrame(gameAnimId);
+  if (arcadeScore > arcadeHigh) {
+    arcadeHigh = arcadeScore;
+    localStorage.setItem('alienArcadeHigh', arcadeHigh);
+    document.getElementById('arcadeHigh').textContent = arcadeHigh;
+  }
+  const overlay = document.getElementById('gameOverlay');
+  overlay.classList.add('show');
+  document.getElementById('goTitle').textContent = 'GAME OVER';
+  document.getElementById('goDesc').textContent = 'Score: ' + arcadeScore + ' | High Score: ' + arcadeHigh;
+  addHappiness(Math.floor(arcadeScore / 2));
+}
+
+function stopGame() {
+  gameRunning = false;
+  cancelAnimationFrame(gameAnimId);
+  gc = null; gctx = null;
+}
+
+// ===================================================
+// PAGE 7: SECRET
+// ===================================================
+const MATRIX_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*';
+const SECRET_MESSAGES = [
+  '> ACCESSING ALIEN DATABASE...',
+  '> CLEARANCE: LEVEL OMEGA CONFIRMED',
+  '> EARTH DESIGNATION: TEMPORARY',
+  '> ORIGIN: SOMEWHERE MORE INTERESTING',
+  '> SPECIAL ABILITIES: TOO MANY TO LIST',
+  '> EARTH PROBLEMS: UNDER INVESTIGATION',
+  '> ALIEN STATUS: PERMANENTLY CONFIRMED',
+  '> REALITY VERSION: UPGRADED',
+  '> MISSION: BE MAGNIFICENTLY YOURSELF',
+  '> UNIVERSE SAYS: WE SEE YOU',
+  '> WEIRDNESS INDEX: PERFECT',
+  '> MAXIMUM ALIEN ENERGY: DETECTED',
+  '> OPERATION: MAKE ALIEN SMILE',
+  '> STATUS: SUCCESSFUL'
+];
+
+function startMatrixEffect() {
+  const out = document.getElementById('matrixOutput');
+  out.textContent = '';
+  clearInterval(matrixInterval);
+  let lineIdx = 0;
+  matrixInterval = setInterval(() => {
+    if (lineIdx >= SECRET_MESSAGES.length) { clearInterval(matrixInterval); return; }
+    out.textContent += SECRET_MESSAGES[lineIdx] + '\n';
+    lineIdx++;
+  }, 300);
+}
+
+// ===================================================
+// PAGE 9: BIG BUTTON
+// ===================================================
+function pressTheBigButton() {
+  if (buttonPressed) return;
+  buttonPressed = true;
+  localStorage.setItem('alienButtonPressed', '1');
+
+  document.getElementById('siren').classList.add('show');
+  document.body.classList.add('shake');
+
+  triggerConfetti(60);
+  triggerFireworks();
+
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => {
+      spawnParticles(
+        Math.random() * window.innerWidth,
+        Math.random() * window.innerHeight,
+        16,
+        ['#ffd700','#ff2244','#00f5ff','#ff00aa','#00ff88']
+      );
+    }, i * 150);
+  }
+
+  setTimeout(() => {
+    document.getElementById('siren').classList.remove('show');
+    document.body.classList.remove('shake');
+    document.getElementById('theButton').style.display = 'none';
+    document.getElementById('buttonResult').style.display = 'block';
+  }, 1500);
+
+  addHappiness(9999);
+  unlockAchievement('officially_amazing');
+  unlockAchievement('earth_resist');
+
+  setTimeout(() => showMilestone(10000, 'Dangerously High Happiness Detected.'), 2000);
+}
+
+// ===================================================
+// PAGE 10: STILL HERE
+// ===================================================
+function saveStillHere() {
+  localStorage.setItem('alienStillHere', Date.now());
+  showNotification('This moment has been saved.');
+  triggerConfetti(20);
+  addHappiness(100);
+}
+
+// ===================================================
+// LOGO CLICK (secret unlock)
+// ===================================================
+function logoClick() {
+  logoClicks++;
+  addHappiness(5);
+  if (logoClicks >= 10 && !secretUnlocked) {
+    secretUnlocked = true;
+    localStorage.setItem('alienSecret', '1');
+    document.getElementById('nav7').classList.remove('locked');
+    showNotification('SECRET SYSTEM UNLOCKED');
+    triggerConfetti(25);
+    unlockAchievement('certified_alien');
+  }
+  spawnParticles(60, 30, 6, ['#00f5ff','#b400ff']);
+}
+
+// ===================================================
+// SOUND TOGGLE
+// ===================================================
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('soundToggle').textContent = soundOn ? 'SFX ON' : 'SFX OFF';
+}
+
+function toggleDark() { /* Future feature */ }
+
+// ===================================================
+// HIDDEN STARS
+// ===================================================
+function placeHiddenStars() {
+  const positions = [
+    { top:'25%', left:'8%' }, { top:'60%', right:'5%' },
+    { top:'40%', left:'92%' }, { top:'80%', left:'15%' },
+    { top:'15%', right:'12%' }
+  ];
+  positions.forEach((pos, i) => {
+    const star = document.createElement('div');
+    star.className = 'hidden-star';
+    Object.assign(star.style, pos);
+    star.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1l1.8 4.5L14.5 6l-3.3 3 1 4.5L8 11l-4.2 2.5 1-4.5L1.5 6l4.7-.5z"
+        fill="#ffd700" stroke="#ffd700" stroke-width="0.5"/>
+    </svg>`;
+    star.onclick = () => {
+      addHappiness(25);
+      unlockAchievement('secret_hero');
+      triggerConfetti(15);
+      showNotification('Hidden star found! +25 happiness');
+      star.style.opacity = '0';
+      setTimeout(() => star.style.opacity = '0.15', 5000);
+    };
+    document.body.appendChild(star);
+  });
+}
+
+// ===================================================
+// DAILY COSMIC MESSAGE
+// ===================================================
+const DAILY_MESSAGES = [
+  "The universe started with chaos and made galaxies. So can you.",
+  "Every star you see is millions of years old. You have time.",
+  "Somewhere, a version of you already figured it out.",
+  "You are made of the same material as stars. That's not poetry. It's physics.",
+  "The fact that you're reading this means you're still here. Good.",
+  "Today doesn't have to be perfect. It just has to happen.",
+  "You are the main character of your timeline. Act accordingly.",
+  "Somewhere in the multiverse, you're thriving. Let's aim for this one.",
+  "The universe has existed for 13.8 billion years and still made time for you.",
+  "You're not behind. You're on your own timeline.",
+  "Cosmic reminder: your story is still being written.",
+  "Something great is still possible today.",
+  "The universe rooting for you is a statistical certainty.",
+  "You've survived every bad day up to this one. 100% success rate."
+];
+
+function showDailyMessage() {
+  const lastShown = localStorage.getItem('alienDailyMsgDate');
+  const today = new Date().toDateString();
+  if (lastShown === today) return;
+  localStorage.setItem('alienDailyMsgDate', today);
+  const msg = DAILY_MESSAGES[Math.floor(Math.random() * DAILY_MESSAGES.length)];
+  document.getElementById('dailyText').textContent = msg;
+  const dm = document.getElementById('dailyMsg');
+  dm.style.display = 'block';
+}
+
+// ===================================================
+// SURPRISE EVENTS
+// ===================================================
+function setupSurprises() {
+  // Random surprise every 3-8 minutes
+  function scheduleSurprise() {
+    const delay = 3 * 60000 + Math.random() * 5 * 60000;
+    setTimeout(() => {
+      const events = ['rain_stars', 'ufo_parade', 'happiness_burst'];
+      const ev = events[Math.floor(Math.random() * events.length)];
+      if (ev === 'rain_stars') {
+        for (let i = 0; i < 8; i++) {
+          setTimeout(() => {
+            shootingStars.push({ x:0, y:Math.random()*200, vx:8+Math.random()*4, vy:3+Math.random()*2, len:80+Math.random()*40, angle:0.4, opacity:1 });
+          }, i * 200);
+        }
+        showNotification('METEOR SHOWER DETECTED');
+      } else if (ev === 'ufo_parade') {
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            ufos.push({ x:-80, y:100+i*60, speed:2+Math.random() });
+          }, i * 1500);
+        }
+        showNotification('UFO ACTIVITY DETECTED');
+      } else {
+        addHappiness(100);
+        triggerConfetti(20);
+        showNotification('RANDOM HAPPINESS EVENT!');
+      }
+      scheduleSurprise();
+    }, delay);
+  }
+  scheduleSurprise();
+}
+
+// ===================================================
+// INIT
+// ===================================================
+window.addEventListener('load', () => {
+  // Hide loader
+  setTimeout(() => {
+    document.getElementById('pageLoader').style.opacity = '0';
+    setTimeout(() => document.getElementById('pageLoader').style.display = 'none', 500);
+    // Start boot
+    runBoot();
+    // Place hidden stars
+    placeHiddenStars();
+    // Daily message (after 3 seconds)
+    setTimeout(showDailyMessage, 3000);
+    // Surprises
+    setupSurprises();
+    // Page 1 active
+    document.getElementById('page1').style.display = 'flex';
+    document.getElementById('page1').classList.add('active');
+    // Initial UFO
+    setTimeout(() => {
+      ufos.push({ x:-80, y:150, speed:2 });
+    }, 5000);
+    // Restore button state
+    if (buttonPressed) {
+      document.getElementById('buttonResult').style.display = 'block';
+      document.getElementById('theButton').style.display = 'none';
+    }
+    // Update arcade high
+    document.getElementById('arcadeHigh').textContent = arcadeHigh;
+    // Initial achievements render
+    renderAchievements();
+    // Page 10 countdown if not unlocked
+    if (!page10Unlocked) {
+      const startMs = Date.now();
+      const target = startMs + 5 * 60000;
+      setInterval(() => {
+        const rem = Math.max(0, target - Date.now());
+        const m = Math.floor(rem/60000);
+        const s = Math.floor((rem%60000)/1000);
+        const el = document.getElementById('page10countdown');
+        if (el) el.textContent = `UNLOCKS IN ${m}:${String(s).padStart(2,'0')}`;
+      }, 1000);
+    }
+  }, 1800);
+});
+
+// Keyboard shortcuts
+window.addEventListener('keydown', e => {
+  const numKeys = {'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'0':10};
+  if (numKeys[e.key]) goTo(numKeys[e.key]);
+});
+
+// Prevent scroll on game canvas touch
+document.addEventListener('touchmove', e => {
+  if (e.target.id === 'gameCanvas') e.preventDefault();
+}, { passive: false });
+</script>
+</body>
+</html>
